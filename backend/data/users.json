@@ -1,0 +1,15 @@
+{
+  "users": [
+    {
+      "_id": "super-admin-id",
+      "username": "super_admin",
+      "email": "admin@trainplanwise.com",
+      "password": "$2a$10$K7L1OJ45/7VXEWsVL9mCme7j.BXyWgv.lW.cOXkCCON8BqKjOKDui",
+      "fullName": "Super Administrator",
+      "role": "super_admin",
+      "status": "approved",
+      "createdAt": "2025-09-21T05:30:43.368Z",
+      "lastLogin": null
+    }
+  ]
+}

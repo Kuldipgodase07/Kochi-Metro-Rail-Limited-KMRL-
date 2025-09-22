@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { 
   Shield, 
   UserCheck, 
@@ -41,9 +41,25 @@ export default function SuperAdminApproval() {
   const [selectedUser, setSelectedUser] = useState<PendingUser | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   
-  const { user, getAllPendingUsers, approveUser, logout } = useAuth()
+  const { user, getAllPendingUsers, approveUser, setUserRole, logout } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
+
+  const loadPendingUsers = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const users = await getAllPendingUsers()
+      setPendingUsers(users)
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to load pending users.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [getAllPendingUsers, toast])
 
   useEffect(() => {
     // Check if user is super admin
@@ -53,7 +69,7 @@ export default function SuperAdminApproval() {
     }
     
     loadPendingUsers()
-  }, [user, navigate])
+  }, [user, navigate, loadPendingUsers])
 
   useEffect(() => {
     // Filter users based on search term
@@ -69,55 +85,50 @@ export default function SuperAdminApproval() {
     }
   }, [searchTerm, pendingUsers])
 
-  const loadPendingUsers = async () => {
-    setIsLoading(true)
-    try {
-      const users = await getAllPendingUsers()
-      setPendingUsers(users)
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load pending users.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // Approve helper is replaced by handleApproveWithRole below
 
-  const handleApproveUser = async (userId: string, userFullName: string) => {
+  const handleApproveWithRole = async (userId: string, userFullName: string, role: 'admin' | 'user') => {
     setIsSubmitting(true)
-    
+
     try {
-      const success = await approveUser(userId)
-      
-      if (success) {
+      const roleSet = await setUserRole(userId, role)
+      if (!roleSet) {
         toast({
-          title: "User Approved",
-          description: `${userFullName} has been successfully approved and can now log in.`,
+          title: 'Role Update Failed',
+          description: 'Unable to set user role. Please try again.',
+          variant: 'destructive',
         })
-        loadPendingUsers() // Refresh the list
+        return
+      }
+
+      const approved = await approveUser(userId)
+      if (approved) {
+        toast({
+          title: role === 'admin' ? 'Admin Approved' : 'User Approved',
+          description: `${userFullName} has been approved as ${role}.`,
+        })
+        loadPendingUsers()
         setIsDialogOpen(false)
         setSelectedUser(null)
       } else {
         toast({
-          title: "Approval Failed",
-          description: "Unable to approve user. Please try again.",
-          variant: "destructive",
+          title: 'Approval Failed',
+          description: 'Unable to approve user. Please try again.',
+          variant: 'destructive',
         })
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
-        title: "Approval Error",
-        description: error.message || "An unexpected error occurred.",
-        variant: "destructive",
+        title: 'Approval Error',
+        description: error instanceof Error ? error.message : 'An unexpected error occurred.',
+        variant: 'destructive',
       })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleRejectUser = async (userId: string, userFullName: string) => {
+  const handleRejectUser = async (_userId: string, _userFullName: string) => {
     // For now, we'll just show a message. You can implement reject functionality later
     toast({
       title: "Feature Coming Soon",
@@ -337,13 +348,22 @@ export default function SuperAdminApproval() {
                           Review
                         </Button>
                         <Button
-                          onClick={() => handleApproveUser(user.id, user.fullName)}
+                          onClick={() => handleApproveWithRole(user.id, user.fullName, 'admin')}
                           disabled={isSubmitting}
                           className="bg-green-600 hover:bg-green-700 text-white"
                           size="sm"
                         >
                           <UserCheck className="mr-2 h-4 w-4" />
-                          Approve
+                          Approve as Admin
+                        </Button>
+                        <Button
+                          onClick={() => handleApproveWithRole(user.id, user.fullName, 'user')}
+                          disabled={isSubmitting}
+                          variant="outline"
+                          size="sm"
+                          className="hover:bg-green-50"
+                        >
+                          Approve as User
                         </Button>
                       </div>
                     </div>
@@ -389,12 +409,20 @@ export default function SuperAdminApproval() {
 
                 <div className="flex space-x-2 pt-4">
                   <Button
-                    onClick={() => handleApproveUser(selectedUser.id, selectedUser.fullName)}
+                    onClick={() => handleApproveWithRole(selectedUser.id, selectedUser.fullName, 'admin')}
                     disabled={isSubmitting}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                   >
                     <UserCheck className="mr-2 h-4 w-4" />
-                    {isSubmitting ? 'Approving...' : 'Approve User'}
+                    {isSubmitting ? 'Approving...' : 'Approve as Admin'}
+                  </Button>
+                  <Button
+                    onClick={() => handleApproveWithRole(selectedUser.id, selectedUser.fullName, 'user')}
+                    disabled={isSubmitting}
+                    className="flex-1"
+                    variant="outline"
+                  >
+                    {isSubmitting ? 'Approving...' : 'Approve as User'}
                   </Button>
                   <Button
                     onClick={() => handleRejectUser(selectedUser.id, selectedUser.fullName)}

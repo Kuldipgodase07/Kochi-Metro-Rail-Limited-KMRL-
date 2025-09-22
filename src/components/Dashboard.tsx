@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { SystemMetrics } from "./SystemMetrics"
 import { TrainCard } from "./TrainCard"
 import { SchedulingPanel } from "./SchedulingPanel"
@@ -9,14 +9,24 @@ import { AISchedulingPanel } from "./AISchedulingPanel"
 import { ReportsPanel } from "./ReportsPanel"
 import { SettingsPanel } from './SettingsPanel-simple'
 import { LanguageSelector } from './LanguageSelector'
+import { FuturisticNavigation } from './FuturisticNavigation'
+import FleetManagement from '../pages/FleetManagement'
+import InductionPlanning from '../pages/InductionPlanning'
+import WhatIfSimulation from '../pages/WhatIfSimulation'
+import MaintenanceTracking from '../pages/MaintenanceTracking'
+import CertificateManagement from '../pages/CertificateManagement'
+import BrandingManagement from '../pages/BrandingManagement'
+import CleaningScheduler from '../pages/CleaningScheduler'
+import ComprehensiveReporting from '../pages/ComprehensiveReporting'
 import { useTrainsets, useRealtimeMetrics, useDailySchedule, useKPIs } from "@/hooks/useTrainData"
-import { Train, RefreshCw, Settings, BarChart3, LogOut, UserCheck } from "lucide-react"
+import { RefreshCw, Settings, BarChart3, LogOut, UserCheck } from "lucide-react"
+import KMRLLogo from './KMRLLogo'
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/AuthContext"
 import { Link } from "react-router-dom"
 import { useTranslation } from 'react-i18next'
+import { NotificationsBell } from './NotificationsBell'
 
 export function Dashboard() {
   const { t } = useTranslation()
@@ -27,7 +37,7 @@ export function Dashboard() {
   const { toast } = useToast()
   const { user, logout } = useAuth()
   
-  const [activeTab, setActiveTab] = useState('manual')
+  const [activeTab, setActiveTab] = useState('fleet')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
@@ -49,7 +59,7 @@ export function Dashboard() {
         title: "Data Refreshed",
         description: "All system data has been updated successfully.",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Refresh Failed",
         description: "Unable to refresh data. Please try again.",
@@ -83,9 +93,7 @@ export function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 rounded-lg shadow-lg dark:shadow-blue-500/25">
-                <Train className="h-6 w-6 text-white" />
-              </div>
+              <KMRLLogo height={28} className="drop-shadow-sm" />
               <div>
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">{t('app.title')}</h1>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{t('app.subtitle')}</p>
@@ -98,6 +106,7 @@ export function Dashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <LanguageSelector />
+              <NotificationsBell />
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -191,30 +200,34 @@ export function Dashboard() {
           </Card>
         </div>
 
-        {/* Main Panels */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="manual">{t('scheduling.manualScheduling')}</TabsTrigger>
-            <TabsTrigger value="ai">{t('scheduling.aiScheduling')}</TabsTrigger>
-            <TabsTrigger value="reports">{t('reports.title')}</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="manual">
-            <SchedulingPanel trainsets={trainsets} />
-          </TabsContent>
-          
-          <TabsContent value="ai">
-            <AISchedulingPanel trainsets={trainsets} />
-          </TabsContent>
-          
-          <TabsContent value="reports">
+        {/* Futuristic Navigation */}
+        <div className="mb-8">
+          <FuturisticNavigation 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab} 
+          />
+        </div>
+
+        {/* Module Content */}
+        <div className="mt-8">
+          {activeTab === 'fleet' && <FleetManagement />}
+          {activeTab === 'induction' && <InductionPlanning />}
+          {activeTab === 'simulation' && <WhatIfSimulation />}
+          {activeTab === 'maintenance' && <MaintenanceTracking />}
+          {activeTab === 'certificates' && <CertificateManagement />}
+          {activeTab === 'branding' && <BrandingManagement />}
+          {activeTab === 'cleaning' && <CleaningScheduler />}
+          {activeTab === 'manual' && <SchedulingPanel trainsets={trainsets} />}
+          {activeTab === 'ai' && <AISchedulingPanel trainsets={trainsets} />}
+          {activeTab === 'reports' && (
             <ReportsPanel 
               trainsets={trainsets}
               scheduleData={scheduleData}
               kpiData={Array.isArray(kpiData) ? kpiData : [kpiData]}
             />
-          </TabsContent>
-        </Tabs>
+          )}
+          {activeTab === 'comprehensive' && <ComprehensiveReporting />}
+        </div>
       </main>
     </div>
   )

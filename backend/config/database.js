@@ -28,7 +28,9 @@ const connectDB = async () => {
 
   } catch (error) {
     console.error('Database connection failed:', error.message);
-    process.exit(1);
+    console.log('⚠️  Server will continue running without database (Demo Mode)');
+    // Don't exit - allow server to run for demo purposes
+    // process.exit(1);
   }
 };
 

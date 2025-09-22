@@ -3,7 +3,8 @@ import User from '../models/User.js';
 
 // Generate JWT token
 export const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+  const secret = process.env.JWT_SECRET || 'dev_secret_change_me'
+  return jwt.sign({ userId }, secret, {
     expiresIn: '7d'
   });
 };
@@ -17,7 +18,21 @@ export const auth = async (req, res, next) => {
       return res.status(401).json({ message: 'Access denied. No token provided.' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const secret = process.env.JWT_SECRET || 'dev_secret_change_me'
+  const decoded = jwt.verify(token, secret);
+    // Allow demo/env super admin token without DB lookup
+    if (decoded.userId === 'demo-super-admin-id') {
+      req.user = {
+        _id: 'demo-super-admin-id',
+        username: process.env.SUPER_ADMIN_USERNAME || 'super_admin',
+        email: process.env.SUPER_ADMIN_EMAIL || 'admin@trainplanwise.com',
+        fullName: 'Super Administrator',
+        role: 'super_admin',
+        status: 'approved'
+      };
+      return next();
+    }
+
     const user = await User.findById(decoded.userId).select('-password');
     
     if (!user) {

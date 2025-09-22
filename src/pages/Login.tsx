@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Train, LogIn, Loader2, Eye, EyeOff } from 'lucide-react'
+import { LogIn, Loader2, Eye, EyeOff } from 'lucide-react'
+import KMRLLogo from '@/components/KMRLLogo'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 
@@ -60,8 +61,11 @@ export default function Login() {
         })
         navigate(from, { replace: true })
       }
-    } catch (error: any) {
-      const errorMessage = error.message || "An unexpected error occurred. Please try again."
+    } catch (error: unknown) {
+      let errorMessage = "An unexpected error occurred. Please try again."
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage
+      }
       toast({
         title: "Login Failed",
         description: errorMessage,
@@ -77,9 +81,7 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-blue-600 rounded-lg">
-              <Train className="h-8 w-8 text-white" />
-            </div>
+            <KMRLLogo height={40} />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
             Welcome Back
@@ -165,15 +167,6 @@ export default function Login() {
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
                 Create one here
-              </Link>
-            </div>
-
-            <div className="text-center">
-              <Link
-                to="/admin"
-                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-              >
-                Super Admin Portal
               </Link>
             </div>
 

@@ -1,0 +1,63 @@
+import React from "react";
+import { Box, Grid, Paper, Typography, Chip, Button, Divider } from "@mui/material";
+import FleetStatusWidget from "../components/FleetStatusWidget";
+import KPIWidget from "../components/KPIWidget";
+import AlertsPanel from "../components/AlertsPanel";
+import InductionPlanPreview from "../components/InductionPlanPreview";
+import BrandingSLAWidget from "../components/BrandingSLAWidget";
+import MaintenanceOverview from "../components/MaintenanceOverview";
+import CleaningScheduleWidget from "../components/CleaningScheduleWidget";
+import WhatIfSimulateButton from "../components/WhatIfSimulateButton";
+
+const Dashboard: React.FC = () => {
+  return (
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Kochi Metro Train Induction Dashboard
+      </Typography>
+      <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+        AI-powered decision support for daily fleet readiness, maintenance, branding, and operational KPIs.
+      </Typography>
+
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        <Grid item xs={12} md={4}>
+          <FleetStatusWidget />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <KPIWidget />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <BrandingSLAWidget />
+        </Grid>
+      </Grid>
+
+      <Divider sx={{ my: 2 }} />
+
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={6}>
+          <InductionPlanPreview />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <MaintenanceOverview />
+        </Grid>
+      </Grid>
+
+      <Divider sx={{ my: 2 }} />
+
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={8}>
+          <CleaningScheduleWidget />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <AlertsPanel />
+        </Grid>
+      </Grid>
+
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+        <WhatIfSimulateButton />
+      </Box>
+    </Box>
+  );
+};
+
+export default Dashboard;

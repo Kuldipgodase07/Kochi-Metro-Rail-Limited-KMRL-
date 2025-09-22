@@ -27,6 +27,7 @@ interface AuthContextType {
   signup: (userData: SignupData) => Promise<boolean>
   approveUser: (userId: string) => Promise<boolean>
   getAllPendingUsers: () => Promise<User[]>
+  setUserRole: (userId: string, role: 'admin' | 'user') => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -147,6 +148,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  const setUserRole = async (userId: string, role: 'admin' | 'user'): Promise<boolean> => {
+    try {
+      await apiCall(`/auth/set-role/${userId}`, {
+        method: 'POST',
+        body: JSON.stringify({ role })
+      })
+      return true
+    } catch (error) {
+      console.error('Set user role error:', error)
+      return false
+    }
+  }
+
   const getAllPendingUsers = async (): Promise<User[]> => {
     try {
       const response = await apiCall('/auth/pending-users')
@@ -165,7 +179,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     signup,
     approveUser,
-    getAllPendingUsers
+    getAllPendingUsers,
+    setUserRole
   }
 
   return (

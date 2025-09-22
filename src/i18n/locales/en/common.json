@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "Train Plan Wise",
-    "subtitle": "Kochi Metro Rail Limited - Fleet Management System",
+    "subtitle": "Kochi Metro Rail Limited",
     "welcome": "Welcome to Train Plan Wise"
   },
   "navigation": {
@@ -10,6 +10,16 @@
     "aiScheduling": "AI-Powered Scheduling",
     "reports": "Reports",
     "settings": "Settings"
+  },
+  "modules": {
+    "fleetManagement": "Fleet Management",
+    "inductionPlanning": "Induction Planning",
+    "whatIfSimulation": "What-If Simulation",
+    "maintenanceTracking": "Maintenance Tracking", 
+    "certificateManagement": "Certificate Management",
+    "brandingManagement": "Branding Management",
+    "cleaningScheduler": "Cleaning Scheduler",
+    "comprehensiveReporting": "Comprehensive Reports"
   },
   "dashboard": {
     "title": "Fleet Dashboard",
