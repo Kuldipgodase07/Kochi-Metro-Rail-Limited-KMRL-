@@ -1,0 +1,22 @@
+[
+  {"number": "KMRL-001", "status": "ready", "bay_position": 1, "mileage": 45000, "last_cleaning": "2024-01-15T08:00:00Z", "branding_priority": 8, "availability_percentage": 95},
+  {"number": "KMRL-002", "status": "ready", "bay_position": 2, "mileage": 42000, "last_cleaning": "2024-01-14T09:30:00Z", "branding_priority": 7, "availability_percentage": 98},
+  {"number": "KMRL-003", "status": "maintenance", "bay_position": 3, "mileage": 48000, "last_cleaning": "2024-01-10T14:00:00Z", "branding_priority": 6, "availability_percentage": 85},
+  {"number": "KMRL-004", "status": "standby", "bay_position": 4, "mileage": 39000, "last_cleaning": "2024-01-16T07:00:00Z", "branding_priority": 9, "availability_percentage": 92},
+  {"number": "KMRL-005", "status": "ready", "bay_position": 5, "mileage": 41000, "last_cleaning": "2024-01-15T10:15:00Z", "branding_priority": 8, "availability_percentage": 96},
+  {"number": "KMRL-006", "status": "ready", "bay_position": 6, "mileage": 43000, "last_cleaning": "2024-01-13T11:00:00Z", "branding_priority": 7, "availability_percentage": 97},
+  {"number": "KMRL-007", "status": "maintenance", "bay_position": 7, "mileage": 47000, "last_cleaning": "2024-01-12T12:30:00Z", "branding_priority": 6, "availability_percentage": 88},
+  {"number": "KMRL-008", "status": "standby", "bay_position": 8, "mileage": 40000, "last_cleaning": "2024-01-17T08:45:00Z", "branding_priority": 9, "availability_percentage": 93},
+  {"number": "KMRL-009", "status": "ready", "bay_position": 9, "mileage": 41500, "last_cleaning": "2024-01-15T09:00:00Z", "branding_priority": 8, "availability_percentage": 96},
+  {"number": "KMRL-010", "status": "ready", "bay_position": 10, "mileage": 44000, "last_cleaning": "2024-01-14T10:30:00Z", "branding_priority": 7, "availability_percentage": 97},
+  {"number": "KMRL-011", "status": "maintenance", "bay_position": 11, "mileage": 48500, "last_cleaning": "2024-01-11T13:00:00Z", "branding_priority": 6, "availability_percentage": 84},
+  {"number": "KMRL-012", "status": "standby", "bay_position": 12, "mileage": 39500, "last_cleaning": "2024-01-18T07:30:00Z", "branding_priority": 9, "availability_percentage": 91},
+  {"number": "KMRL-013", "status": "ready", "bay_position": 13, "mileage": 42000, "last_cleaning": "2024-01-16T10:00:00Z", "branding_priority": 8, "availability_percentage": 95},
+  {"number": "KMRL-014", "status": "ready", "bay_position": 14, "mileage": 43500, "last_cleaning": "2024-01-13T11:45:00Z", "branding_priority": 7, "availability_percentage": 98},
+  {"number": "KMRL-015", "status": "maintenance", "bay_position": 15, "mileage": 47500, "last_cleaning": "2024-01-12T14:30:00Z", "branding_priority": 6, "availability_percentage": 87},
+  {"number": "KMRL-016", "status": "standby", "bay_position": 16, "mileage": 40500, "last_cleaning": "2024-01-19T08:00:00Z", "branding_priority": 9, "availability_percentage": 94},
+  {"number": "KMRL-017", "status": "ready", "bay_position": 17, "mileage": 41800, "last_cleaning": "2024-01-15T09:30:00Z", "branding_priority": 8, "availability_percentage": 97},
+  {"number": "KMRL-018", "status": "ready", "bay_position": 18, "mileage": 44500, "last_cleaning": "2024-01-14T10:45:00Z", "branding_priority": 7, "availability_percentage": 96},
+  {"number": "KMRL-019", "status": "maintenance", "bay_position": 19, "mileage": 49000, "last_cleaning": "2024-01-10T15:00:00Z", "branding_priority": 6, "availability_percentage": 83},
+  {"number": "KMRL-020", "status": "standby", "bay_position": 20, "mileage": 41000, "last_cleaning": "2024-01-20T07:00:00Z", "branding_priority": 9, "availability_percentage": 90}
+]
