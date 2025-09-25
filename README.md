@@ -323,6 +323,95 @@ Typical performance metrics after training:
 
 *Training times on NVIDIA RTX 4090, 32GB RAM, 16 CPU cores*
 
+## 💡 Usage Examples
+
+### Basic Training Example
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Train agent on standard scenario
+python train_agent.py --scenario standard --timesteps 500000
+
+# Train on rush hour scenario with more parallel environments  
+python train_agent.py --scenario rush_hour --timesteps 1000000 --n_envs 8
+
+# Monitor training progress
+tensorboard --logdir tensorboard_logs/
+```
+
+### Testing and Evaluation
+```bash
+# Test trained agent
+python test_agent.py models/best_model.zip
+
+# Run live demonstration
+python test_agent.py models/best_model.zip --live_demo --demo_episodes 5
+
+# Comprehensive testing across all scenarios
+python test_agent.py models/best_model.zip --scenarios standard rush_hour accessibility_focus --episodes 50
+```
+
+### Using the Demo System
+```bash
+# Run interactive demo (no dependencies required)
+python demo_rl_system.py
+
+# Or run specific demo functions
+python -c "from demo_rl_system import KMRLMetroDemo; env = KMRLMetroDemo(); env.reset(); print('Demo ready!')"
+```
+
+### Integration with Web Application
+```javascript
+// Example API integration in the existing KMRL dashboard
+fetch('/api/rl-recommendations', {
+  method: 'POST',
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify({
+    trains: currentTrainStates,
+    stations: currentStationData,
+    timestamp: Date.now()
+  })
+})
+.then(response => response.json())
+.then(data => {
+  // Update train positions based on RL recommendations
+  updateTrainPositions(data.recommended_actions);
+  displayAIConfidence(data.confidence_score);
+});
+```
+
+## 📁 Project Structure
+
+The project now includes both the original web application and the new Deep RL system:
+
+```
+KMRL-Metro-System/
+├── 🌐 Frontend & Backend
+│   ├── src/                    # React TypeScript frontend
+│   ├── backend/               # Node.js backend
+│   ├── public/               # Static assets
+│   └── supabase/            # Database configuration
+│
+├── 🤖 Deep RL System
+│   ├── metro_env.py         # Core RL environment
+│   ├── train_agent.py       # PPO training script
+│   ├── test_agent.py        # Testing and evaluation
+│   ├── demo_rl_system.py    # Standalone demo
+│   └── requirements.txt     # Python dependencies
+│
+├── 📊 Generated Outputs (after training)
+│   ├── models/              # Trained RL models
+│   ├── tensorboard_logs/    # Training logs
+│   ├── test_results/        # Evaluation results
+│   └── training.log         # Training progress
+│
+└── 📝 Documentation
+    ├── README.md           # This comprehensive guide
+    ├── DEPLOYMENT.md       # Deployment instructions
+    └── MULTILANGUAGE.md    # Localization guide
+```
+
 ## Project Structure
 
 Replace this sample structure with your actual folders and files.
