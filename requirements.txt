@@ -1,0 +1,27 @@
+# Deep Reinforcement Learning Dependencies for KMRL Metro Scheduling
+# Core RL framework
+stable-baselines3==2.2.1
+gymnasium==0.29.1
+
+# Deep learning backend
+torch==2.1.1
+tensorboard==2.15.1
+
+# Scientific computing
+numpy==1.24.3
+pandas==2.1.4
+scipy==1.11.4
+
+# Visualization and plotting
+matplotlib==3.8.2
+seaborn==0.13.0
+plotly==5.17.0
+
+# Environment and utilities
+python-dotenv==1.0.0
+tqdm==4.66.1
+pyyaml==6.0.1
+
+# Optional: For advanced features
+opencv-python==4.8.1.78  # For visualization enhancements
+networkx==3.2.1          # For route network modeling
