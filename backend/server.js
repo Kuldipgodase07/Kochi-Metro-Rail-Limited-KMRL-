@@ -7,6 +7,11 @@ import authRoutes from './routes/auth.js';
 import dataRoutes from './routes/data.js';
 import reportsRoutes from './routes/reports.js';
 import alertsRoutes from './routes/alerts.js';
+import brandingRoutes from './routes/branding.js';
+import cleaningRoutes from './routes/cleaning.js';
+import stablingRoutes from './routes/stabling.js';
+import optimizerRoutes from './routes/optimizer.js';
+import feedbackRoutes from './routes/feedback.js';
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +63,17 @@ app.options('*', cors(corsOptions));
 
 // JSON parsing
 app.use(express.json({ limit: '10mb' }));
+
+// Ingestion endpoints for induction planning variables
+app.use('/api/branding', brandingRoutes);
+app.use('/api/cleaning', cleaningRoutes);
+app.use('/api/stabling', stablingRoutes);
+
+// Induction optimizer endpoint
+app.use('/api/optimizer', optimizerRoutes);
+
+// Induction feedback endpoints
+app.use('/api/feedback', feedbackRoutes);
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Apply rate limiting to all requests (after CORS so preflight gets headers)

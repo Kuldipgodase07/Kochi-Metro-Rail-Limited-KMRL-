@@ -133,9 +133,17 @@ const mockRecommendations: InductionRecommendation[] = [
 ];
 
 const InductionPlanning: React.FC = () => {
-  const [recommendations] = useState<InductionRecommendation[]>(mockRecommendations);
+  const [recommendations, setRecommendations] = useState<InductionRecommendation[]>(mockRecommendations);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackTrainset, setFeedbackTrainset] = useState<string | null>(null);
+  const [feedbackData, setFeedbackData] = useState({ actual_status: '', punctuality: '', incidents: '', notes: '' });
+  const [feedbackHistory, setFeedbackHistory] = useState<any[]>([]);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
   const [selectedTrainset, setSelectedTrainset] = useState<InductionRecommendation | null>(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [showSimulation, setShowSimulation] = useState(false);
+  const [scenarioOverrides, setScenarioOverrides] = useState<any>({});
+  const [loadingSim, setLoadingSim] = useState(false);
 
   const getStatusBadge = (status: string, score: number) => {
     const statusConfig = {
@@ -163,12 +171,81 @@ const InductionPlanning: React.FC = () => {
     // In real implementation, this would trigger AI model re-evaluation
   };
 
+  // What-if simulation handler
+  const runSimulation = async () => {
+    setLoadingSim(true);
+    try {
+      const res = await fetch('/api/optimizer/induction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenarioOverrides })
+      });
+      const data = await res.json();
+      // Map backend results to frontend format if needed
+      setRecommendations(data.results.map((r: any, idx: number) => ({
+        trainsetNumber: r.trainset_number,
+        rank: idx + 1,
+        score: r.priority_score * 10,
+        status: r.recommended_status === 'ready' ? 'recommended' : (r.recommended_status === 'maintenance' ? 'caution' : 'not-recommended'),
+        route: 'Simulated',
+        scheduledTime: 'Simulated',
+        factors: {
+          availability: r.availability,
+          maintenance: 80,
+          fitness: 80,
+          branding: 80,
+          cleaning: 80,
+          priority: r.priority_score * 10
+        },
+        conflicts: r.conflicts,
+        reasoning: r.reasoning,
+        alternatives: []
+      })));
+      setLastUpdated(new Date());
+      setShowSimulation(false);
+    } catch (err) {
+      alert('Simulation failed');
+    }
+    setLoadingSim(false);
+  };
+
   const overallMetrics = {
     totalRecommended: recommendations.filter(r => r.status === 'recommended').length,
     totalCaution: recommendations.filter(r => r.status === 'caution').length,
     totalNotRecommended: recommendations.filter(r => r.status === 'not-recommended').length,
     averageScore: Math.round(recommendations.reduce((acc, r) => acc + r.score, 0) / recommendations.length),
     totalConflicts: recommendations.reduce((acc, r) => acc + r.conflicts.length, 0)
+  };
+
+  // Fetch feedback history for selected trainset
+  const fetchFeedbackHistory = async (trainsetNumber: string) => {
+    setLoadingFeedback(true);
+    try {
+      const res = await fetch(`/api/feedback/trainset/${trainsetNumber}`);
+      const data = await res.json();
+      setFeedbackHistory(data);
+    } catch {}
+    setLoadingFeedback(false);
+  };
+
+  // Submit feedback
+  const submitFeedback = async () => {
+    setLoadingFeedback(true);
+    try {
+      await fetch('/api/feedback/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trainset_id: feedbackTrainset,
+          induction_date: new Date().toISOString(),
+          ...feedbackData
+        })
+      });
+      setShowFeedback(false);
+      setFeedbackData({ actual_status: '', punctuality: '', incidents: '', notes: '' });
+      fetchFeedbackHistory(feedbackTrainset!);
+    } catch {}
+    setLoadingFeedback(false);
   };
 
   return (
@@ -187,6 +264,9 @@ const InductionPlanning: React.FC = () => {
           <Button className="bg-blue-600 hover:bg-blue-700">
             <Target className="w-4 h-4 mr-2" />
             Generate Schedule
+          </Button>
+          <Button variant="secondary" onClick={() => setShowSimulation(true)}>
+            What-if Simulation
           </Button>
         </div>
       </div>
@@ -348,6 +428,9 @@ const InductionPlanning: React.FC = () => {
                   <Button variant="ghost" size="sm" className="text-blue-600 p-0 h-auto">
                     View Full Analysis
                   </Button>
+                  <Button variant="ghost" size="sm" className="text-green-600 p-0 h-auto" onClick={() => { setShowFeedback(true); setFeedbackTrainset(rec.trainsetNumber); fetchFeedbackHistory(rec.trainsetNumber); }}>
+                    Submit Feedback
+                  </Button>
                 </div>
               </div>
             ))}
@@ -359,108 +442,127 @@ const InductionPlanning: React.FC = () => {
       {selectedTrainset && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            {/* ...existing code... */}
+            {/* Audit trail: feedback history */}
+            <CardContent>
+              <h3 className="font-semibold mb-2">Audit Trail: Feedback History</h3>
+              {loadingFeedback ? (
+                <p>Loading feedback...</p>
+              ) : feedbackHistory.length === 0 ? (
+                <p>No feedback submitted yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {feedbackHistory.map((fb, idx) => (
+                    <div key={idx} className="p-2 border rounded-lg">
+                      <div className="flex justify-between">
+                        <span className="font-medium">{fb.actual_status}</span>
+                        <span className="text-xs text-gray-500">{new Date(fb.induction_date).toLocaleString()}</span>
+                      </div>
+                      <div className="text-sm text-gray-700">Punctuality: {fb.punctuality} | Incidents: {fb.incidents}</div>
+                      <div className="text-xs text-gray-500">{fb.notes}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Feedback Submission Modal */}
+      {showFeedback && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md">
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl">
-                  AI Analysis: {selectedTrainset.trainsetNumber}
-                </CardTitle>
-                <Button variant="ghost" onClick={() => setSelectedTrainset(null)}>
-                  ×
-                </Button>
-              </div>
+              <CardTitle>Submit Induction Feedback</CardTitle>
+              <Button variant="ghost" onClick={() => setShowFeedback(false)}>×</Button>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="analysis">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
-                  <TabsTrigger value="factors">Score Factors</TabsTrigger>
-                  <TabsTrigger value="alternatives">Alternatives</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="analysis" className="space-y-4">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold mb-2">Overall Assessment</h3>
-                      <div className="flex items-center gap-4 mb-4">
-                        {getStatusBadge(selectedTrainset.status, selectedTrainset.score)}
-                        <div className="flex-1">
-                          <Progress value={selectedTrainset.score} className="h-3" />
-                        </div>
-                      </div>
-                    </div>
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="font-medium">Actual Status</span>
+                  <input className="w-full border rounded p-2" value={feedbackData.actual_status} onChange={e => setFeedbackData({ ...feedbackData, actual_status: e.target.value })} />
+                </label>
+                <label className="block">
+                  <span className="font-medium">Punctuality (%)</span>
+                  <input className="w-full border rounded p-2" type="number" value={feedbackData.punctuality} onChange={e => setFeedbackData({ ...feedbackData, punctuality: e.target.value })} />
+                </label>
+                <label className="block">
+                  <span className="font-medium">Incidents</span>
+                  <input className="w-full border rounded p-2" type="number" value={feedbackData.incidents} onChange={e => setFeedbackData({ ...feedbackData, incidents: e.target.value })} />
+                </label>
+                <label className="block">
+                  <span className="font-medium">Notes</span>
+                  <textarea className="w-full border rounded p-2" value={feedbackData.notes} onChange={e => setFeedbackData({ ...feedbackData, notes: e.target.value })} />
+                </label>
+                <Button className="w-full" onClick={submitFeedback} disabled={loadingFeedback}>
+                  {loadingFeedback ? 'Submitting...' : 'Submit Feedback'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-                    <div>
-                      <h3 className="font-semibold mb-2">AI Reasoning</h3>
-                      <div className="space-y-2">
-                        {selectedTrainset.reasoning.map((reason, index) => (
-                          <div key={index} className="flex items-start gap-2">
-                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{reason}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {selectedTrainset.conflicts.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold mb-2">Identified Conflicts</h3>
-                        <div className="space-y-2">
-                          {selectedTrainset.conflicts.map((conflict, index) => (
-                            <div key={index} className="flex items-start gap-2">
-                              <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm">{conflict}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div>
-                      <h3 className="font-semibold mb-2">Scheduled Assignment</h3>
-                      <div className="p-3 bg-blue-50 rounded-lg">
-                        <p><span className="font-medium">Route:</span> {selectedTrainset.route}</p>
-                        <p><span className="font-medium">Departure:</span> {selectedTrainset.scheduledTime}</p>
-                        <p><span className="font-medium">Rank:</span> #{selectedTrainset.rank} of {recommendations.length}</p>
-                      </div>
+      {/* What-if Simulation Modal */}
+      {showSimulation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-xl">
+            <CardHeader>
+              <CardTitle>What-if Simulation</CardTitle>
+              <Button variant="ghost" onClick={() => setShowSimulation(false)}>
+                ×
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-gray-700">Adjust variables for one or more trainsets to simulate alternative scenarios. Example: mark a trainset unavailable, force cleaning overdue, override certificate status.</p>
+                {/* Simple override form for demo: trainsetNumber, forceUnavailable, forceOverdueCleaning, forceExpiredCert */}
+                {recommendations.map((rec) => (
+                  <div key={rec.trainsetNumber} className="border-b pb-3 mb-3">
+                    <div className="font-semibold mb-2">{rec.trainsetNumber}</div>
+                    <div className="flex gap-3 flex-wrap">
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" checked={scenarioOverrides[rec.trainsetNumber]?.forceUnavailable || false}
+                          onChange={e => setScenarioOverrides({
+                            ...scenarioOverrides,
+                            [rec.trainsetNumber]: {
+                              ...scenarioOverrides[rec.trainsetNumber],
+                              forceUnavailable: e.target.checked,
+                              forceAvailability: e.target.checked ? 0 : undefined
+                            }
+                          })}
+                        /> Unavailable
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" checked={scenarioOverrides[rec.trainsetNumber]?.forceOverdueCleaning || false}
+                          onChange={e => setScenarioOverrides({
+                            ...scenarioOverrides,
+                            [rec.trainsetNumber]: {
+                              ...scenarioOverrides[rec.trainsetNumber],
+                              forceOverdueCleaning: e.target.checked
+                            }
+                          })}
+                        /> Cleaning Overdue
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" checked={scenarioOverrides[rec.trainsetNumber]?.forceExpiredCert || false}
+                          onChange={e => setScenarioOverrides({
+                            ...scenarioOverrides,
+                            [rec.trainsetNumber]: {
+                              ...scenarioOverrides[rec.trainsetNumber],
+                              forceExpiredCert: e.target.checked
+                            }
+                          })}
+                        /> Certificate Expired
+                      </label>
                     </div>
                   </div>
-                </TabsContent>
-                
-                <TabsContent value="factors" className="space-y-4">
-                  <h3 className="font-semibold">Detailed Score Breakdown</h3>
-                  <div className="space-y-4">
-                    {Object.entries(selectedTrainset.factors).map(([factor, score]) => (
-                      <div key={factor}>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="capitalize font-medium">{factor}</span>
-                          <span className={`font-bold ${getScoreColor(score)}`}>{score}%</span>
-                        </div>
-                        <Progress value={score} className="h-2" />
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="alternatives" className="space-y-4">
-                  <h3 className="font-semibold">Alternative Trainsets</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    If {selectedTrainset.trainsetNumber} becomes unavailable, these are the AI-recommended alternatives:
-                  </p>
-                  <div className="space-y-3">
-                    {selectedTrainset.alternatives.map((alt, index) => (
-                      <div key={index} className="p-3 border rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{alt}</span>
-                          <Badge variant="outline">Alternative #{index + 1}</Badge>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Similar performance profile with {85 - index * 5}% compatibility score
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-              </Tabs>
+                ))}
+                <Button className="w-full" onClick={runSimulation} disabled={loadingSim}>
+                  {loadingSim ? 'Simulating...' : 'Run Simulation'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

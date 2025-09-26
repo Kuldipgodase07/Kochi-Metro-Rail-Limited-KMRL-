@@ -20,7 +20,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider defaultTheme="light" storageKey="train-plan-wise-theme">
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter
+          future={{
+            v7_relativeSplatPath: true
+          }}
+        >
           <App />
         </BrowserRouter>
       </QueryClientProvider>

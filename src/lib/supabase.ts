@@ -42,6 +42,51 @@ export interface JobCard {
   completed_at?: string
 }
 
+// New: Branding contract/campaign details
+export interface BrandingCampaign {
+  id: string
+  trainset_id: string
+  advertiser: string
+  campaign_name: string
+  contract_value: number
+  start_date: string
+  end_date: string
+  exposure_target: number
+  actual_exposure: number
+  wrap_area: string
+  status: 'active' | 'expired' | 'pending' | 'compliant'
+  last_inspection_date: string
+  renewal_probability: number
+  created_at: string
+  updated_at: string
+}
+
+// New: Cleaning slot/schedule details
+export interface CleaningSlot {
+  id: string
+  trainset_id: string
+  scheduled_date: string
+  slot_time: string
+  status: 'scheduled' | 'completed' | 'overdue'
+  cleaning_type: 'routine' | 'deep' | 'emergency'
+  remarks?: string
+  created_at: string
+  updated_at: string
+}
+
+// New: Stabling geometry and bay assignment
+export interface StablingAssignment {
+  id: string
+  trainset_id: string
+  bay_position: number
+  assigned_date: string
+  shunting_cost: number
+  slot_efficiency: number
+  remarks?: string
+  created_at: string
+  updated_at: string
+}
+
 export interface DailySchedule {
   id: string
   schedule_date: string

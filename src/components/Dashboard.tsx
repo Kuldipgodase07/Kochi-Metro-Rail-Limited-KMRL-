@@ -19,9 +19,9 @@ import BrandingManagement from '../pages/BrandingManagement'
 import CleaningScheduler from '../pages/CleaningScheduler'
 import ComprehensiveReporting from '../pages/ComprehensiveReporting'
 import { useTrainsets, useRealtimeMetrics, useDailySchedule, useKPIs } from "@/hooks/useTrainData"
-import { RefreshCw, Settings, BarChart3, LogOut, UserCheck } from "lucide-react"
+import { RefreshCw, Settings, LogOut, UserCheck } from "lucide-react"
 import KMRLLogo from './KMRLLogo'
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/AuthContext"
 import { Link } from "react-router-dom"
@@ -40,6 +40,12 @@ export function Dashboard() {
   const [activeTab, setActiveTab] = useState('fleet')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [liveTime, setLiveTime] = useState(new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setLiveTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   const readyTrainsets = trainsets.filter(t => t.status === 'ready')
   const standbyTrainsets = trainsets.filter(t => t.status === 'standby')
@@ -70,13 +76,6 @@ export function Dashboard() {
     }
   }
 
-  const handleReportsClick = () => {
-    setActiveTab('reports')
-    toast({
-      title: "Reports Opened",
-      description: "Accessing comprehensive analytics and reporting.",
-    })
-  }
 
   const handleLogout = () => {
     logout()
@@ -105,6 +104,20 @@ export function Dashboard() {
               )}
             </div>
             <div className="flex items-center space-x-4">
+              {/* Simple, consistent, interactive Live Time Bar */}
+              <div
+                className="flex items-center gap-2 px-4 py-1 rounded-full bg-white/80 dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer select-none"
+                title="Live Metro Time"
+              >
+                <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10" strokeWidth="2" className="opacity-30" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6l4 2" />
+                </svg>
+                <span className="font-mono text-base font-semibold text-gray-900 dark:text-gray-100 tracking-widest">
+                  {liveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </span>
+                <span className="uppercase text-xs text-blue-700 dark:text-blue-300 ml-1 tracking-wider">IST</span>
+              </div>
               <LanguageSelector />
               <NotificationsBell />
               <Button 
@@ -132,15 +145,7 @@ export function Dashboard() {
                 </DialogContent>
               </Dialog>
               
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleReportsClick}
-                className="hover:bg-purple-50"
-              >
-                <BarChart3 className="h-4 w-4 mr-2" />
-                {t('reports.title')}
-              </Button>
+              {/* Report button removed: reporting is available in navigation bar */}
               
               {user?.role === 'super_admin' && (
                 <Link to="/admin/approvals">

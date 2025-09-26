@@ -4,6 +4,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import Landing from '@/pages/Landing'
 import Index from '@/pages/Index'
 import Login from '@/pages/Login'
 import SignUp from '@/pages/SignUp'
@@ -18,6 +19,7 @@ function App() {
       <AuthProvider>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/admin" element={<AdminPortal />} />
@@ -26,7 +28,7 @@ function App() {
                 <SuperAdminApproval />
               </ProtectedRoute>
             } />
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Index />
               </ProtectedRoute>

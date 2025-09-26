@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="28" width="40" height="16" rx="2" fill="#6B7280" stroke="#4B5563" stroke-width="2"/>
+  <rect x="6" y="24" width="36" height="8" rx="4" fill="#8B5CF6"/>
+  <circle cx="12" cy="28" r="3" fill="white"/>
+  <circle cx="36" cy="28" r="3" fill="white"/>
+  <rect x="14" y="26" width="20" height="4" rx="2" fill="white"/>
+  <path d="M4 28C4 28 8 16 24 16C40 16 44 28 44 28" stroke="#6B7280" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+  <circle cx="24" cy="12" r="2" fill="#8B5CF6"/>
+  <text x="24" y="8" font-family="Arial" font-size="8" text-anchor="middle" fill="#8B5CF6">UNDERGROUND</text>
+</svg>

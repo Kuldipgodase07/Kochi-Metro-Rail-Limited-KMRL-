@@ -1,0 +1,91 @@
+/* Landing page specific styles */
+.hero-pattern {
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
+    linear-gradient(45deg, transparent 49%, rgba(255, 255, 255, 0.05) 50%, transparent 51%);
+  background-size: 100px 100px, 100px 100px, 50px 50px;
+}
+
+.hero-background {
+  background-image: 
+    linear-gradient(135deg, rgba(34, 197, 94, 0.85) 0%, rgba(249, 115, 22, 0.85) 50%, rgba(21, 128, 61, 0.85) 100%),
+    url('/Landing Page/WhatsApp Image 2025-09-26 at 13.44.22_ab579261.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.hero-overlay {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.75) 0%, rgba(249, 115, 22, 0.75) 50%, rgba(21, 128, 61, 0.75) 100%);
+  backdrop-filter: blur(1px);
+}
+
+.metro-gradient {
+  background: linear-gradient(135deg, #22C55E 0%, #F97316 50%, #15803D 100%);
+}
+
+.station-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.station-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(34, 197, 94, 0.25), 0 10px 10px -5px rgba(34, 197, 94, 0.1);
+  border-color: #22C55E;
+  background: rgba(255, 255, 255, 1);
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(34, 197, 94, 0.25), 0 10px 10px -5px rgba(34, 197, 94, 0.1);
+  border-color: #22C55E;
+}
+
+.floating-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .9;
+  }
+}
+
+.text-shadow-strong {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.bg-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
