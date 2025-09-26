@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,71 +34,19 @@ interface Trainset {
   priority: number;
 }
 
-const mockTrainsets: Trainset[] = [
-  {
-    id: '1',
-    number: 'KMRL-001',
-    status: 'service',
-    location: 'Aluva',
-    mileage: 45230,
-    lastMaintenance: '2024-09-15',
-    nextMaintenance: '2024-10-15',
-    fitnessExpiry: '2025-03-15',
-    brandingStatus: 'Coca-Cola (Valid)',
-    cleaningStatus: 'clean',
-    openJobCards: 0,
-    availability: 98,
-    priority: 9
-  },
-  {
-    id: '2',
-    number: 'KMRL-005',
-    status: 'maintenance',
-    location: 'Muttom Depot',
-    mileage: 38975,
-    lastMaintenance: '2024-09-10',
-    nextMaintenance: '2024-10-10',
-    fitnessExpiry: '2025-01-20',
-    brandingStatus: 'Pepsi (Expiring)',
-    cleaningStatus: 'due',
-    openJobCards: 3,
-    availability: 85,
-    priority: 6
-  },
-  {
-    id: '3',
-    number: 'KMRL-009',
-    status: 'standby',
-    location: 'Kalamassery',
-    mileage: 52100,
-    lastMaintenance: '2024-09-08',
-    nextMaintenance: '2024-10-08',
-    fitnessExpiry: '2025-06-10',
-    brandingStatus: 'None',
-    cleaningStatus: 'clean',
-    openJobCards: 1,
-    availability: 95,
-    priority: 8
-  },
-  {
-    id: '4',
-    number: 'KMRL-013',
-    status: 'IBL',
-    location: 'Muttom Depot',
-    mileage: 41850,
-    lastMaintenance: '2024-09-20',
-    nextMaintenance: '2024-10-20',
-    fitnessExpiry: '2025-04-05',
-    brandingStatus: 'Samsung (Valid)',
-    cleaningStatus: 'overdue',
-    openJobCards: 5,
-    availability: 70,
-    priority: 4
-  }
-];
+// ...existing code...
 
 const FleetManagement: React.FC = () => {
-  const [trainsets] = useState<Trainset[]>(mockTrainsets);
+  const [trainsets, setTrainsets] = useState<Trainset[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetch('/api/data/trainsets')
+      .then(res => res.json())
+      .then(data => {
+        setTrainsets(data);
+        setLoading(false);
+      });
+  }, []);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedTrainset, setSelectedTrainset] = useState<Trainset | null>(null);

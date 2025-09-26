@@ -132,7 +132,7 @@ const KochiMetroLanding = () => {
             Welcome to
           </h2>
           <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold text-white mb-8 leading-tight text-shadow-strong">
-            <span className="bg-gradient-to-r from-green-200 via-orange-200 to-green-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-200 via-green-200 to-emerald-300 bg-clip-text text-transparent">
               Kochi Metro !
             </span>
           </h1>
@@ -158,8 +158,8 @@ const KochiMetroLanding = () => {
         <div className="absolute bottom-32 right-10 w-20 h-20 border-2 border-white/30 rounded-lg animate-pulse bg-white/5"></div>
         <div className="absolute top-1/2 left-20 w-12 h-12 bg-white/20 rounded-full animate-bounce"></div>
         <div className="absolute top-1/3 right-20 w-16 h-16 bg-white/20 rounded-lg animate-bounce delay-1000"></div>
-        <div className="absolute bottom-1/3 left-1/3 w-8 h-8 bg-green-400/30 rounded-full animate-ping"></div>
-        <div className="absolute top-1/4 right-1/3 w-10 h-10 bg-orange-400/30 rounded-full animate-ping delay-500"></div>
+        <div className="absolute bottom-1/3 left-1/3 w-8 h-8 bg-emerald-400/30 rounded-full animate-ping"></div>
+        <div className="absolute top-1/4 right-1/3 w-10 h-10 bg-green-400/30 rounded-full animate-ping delay-500"></div>
       </section>
 
       {/* Statistics Section */}
@@ -183,10 +183,10 @@ const KochiMetroLanding = () => {
       </section>
 
       {/* Route Map Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 to-orange-50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-emerald-50 to-green-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center text-green-800 mb-12">ROUTE MAP</h2>
-          <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-green-200">
+          <h2 className="text-4xl font-bold text-center text-emerald-800 mb-12">ROUTE MAP</h2>
+          <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-emerald-200">
             <div className="aspect-video">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d125448.89606621865!2d76.22652885000001!3d9.93004045!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b080d72b4a8d5e7%3A0x6b4c5e5a6b4c5e5a!2sKochi%20Metro%20Rail%20Limited!5e0!3m2!1sen!2sin!4v1638360000000!5m2!1sen!2sin"
@@ -199,8 +199,8 @@ const KochiMetroLanding = () => {
                 title="Kochi Metro Route Map"
               ></iframe>
             </div>
-            <div className="p-8 text-center bg-gradient-to-r from-green-50 to-orange-50">
-              <Button variant="outline" className="border-green-600 text-green-700 hover:bg-green-50 hover:border-green-700 px-8 py-3 text-lg font-semibold">
+            <div className="p-8 text-center bg-gradient-to-r from-emerald-50 to-green-50">
+              <Button variant="outline" className="border-emerald-600 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-700 px-8 py-3 text-lg font-semibold">
                 <Navigation className="mr-3 h-5 w-5" />
                 Open in Google Maps
               </Button>
@@ -212,15 +212,15 @@ const KochiMetroLanding = () => {
       {/* Stations Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center text-green-800 mb-16">STATIONS</h2>
+          <h2 className="text-4xl font-bold text-center text-emerald-800 mb-16">STATIONS</h2>
           <div className="grid lg:grid-cols-2 gap-8">
             {Object.entries(stations).map(([line, stationList]) => (
               <Card key={line} className="station-card">
                 <CardContent className="p-8">
-                  <h3 className="text-2xl font-bold text-green-700 mb-8 text-center">{line}</h3>
+                  <h3 className="text-2xl font-bold text-emerald-700 mb-8 text-center">{line}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {stationList.map((station, idx) => (
-                      <div key={idx} className="p-4 bg-gradient-to-r from-green-50 to-orange-50 rounded-lg text-center text-sm font-semibold text-green-800 hover:from-green-100 hover:to-orange-100 transition-colors duration-200 border border-green-100">
+                      <div key={idx} className="p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg text-center text-sm font-semibold text-emerald-800 hover:from-emerald-100 hover:to-green-100 transition-colors duration-200 border border-emerald-100">
                         {station}
                       </div>
                     ))}
@@ -233,9 +233,9 @@ const KochiMetroLanding = () => {
       </section>
 
       {/* Other Metro Projects */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 to-orange-50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-emerald-50 to-green-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center text-green-800 mb-12">Other Metro Projects</h2>
+          <h2 className="text-4xl font-bold text-center text-emerald-800 mb-12">Other Metro Projects</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {metroProjects.map((project, index) => (
               <a
@@ -243,7 +243,7 @@ const KochiMetroLanding = () => {
                 href={project.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-4 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 text-center text-green-700 font-semibold hover:text-green-900 border border-green-100 hover:border-green-300 hover:transform hover:scale-105"
+                className="p-4 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 text-center text-emerald-700 font-semibold hover:text-emerald-900 border border-emerald-100 hover:border-emerald-300 hover:transform hover:scale-105"
               >
                 {project.name}
               </a>
@@ -253,60 +253,60 @@ const KochiMetroLanding = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-r from-green-900 via-green-800 to-orange-800 text-white py-16">
+      <footer className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-green-800 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-12">
             <div>
-              <h3 className="text-xl font-bold mb-6 text-green-200">Important Links</h3>
+              <h3 className="text-xl font-bold mb-6 text-emerald-200">Important Links</h3>
               <div className="space-y-3 text-sm">
-                <a href="http://www.india.gov.in/" className="block hover:text-green-300 transition-colors duration-200">Government of India</a>
-                <a href="http://www.kerala.gov.in/" className="block hover:text-green-300 transition-colors duration-200">Kerala Government</a>
-                <a href="https://mohua.gov.in/" className="block hover:text-green-300 transition-colors duration-200">MoUD, Government of India</a>
-                <a href="https://lsgd.kerala.gov.in/" className="block hover:text-green-300 transition-colors duration-200">LSGD, Kerala</a>
-                <a href="https://ernakulam.nic.in/" className="block hover:text-green-300 transition-colors duration-200">Ernakulam District</a>
-                <a href="https://corporationofkochi.org/" className="block hover:text-green-300 transition-colors duration-200">Kochi Corporation</a>
+                <a href="http://www.india.gov.in/" className="block hover:text-emerald-300 transition-colors duration-200">Government of India</a>
+                <a href="http://www.kerala.gov.in/" className="block hover:text-emerald-300 transition-colors duration-200">Kerala Government</a>
+                <a href="https://mohua.gov.in/" className="block hover:text-emerald-300 transition-colors duration-200">MoUD, Government of India</a>
+                <a href="https://lsgd.kerala.gov.in/" className="block hover:text-emerald-300 transition-colors duration-200">LSGD, Kerala</a>
+                <a href="https://ernakulam.nic.in/" className="block hover:text-emerald-300 transition-colors duration-200">Ernakulam District</a>
+                <a href="https://corporationofkochi.org/" className="block hover:text-emerald-300 transition-colors duration-200">Kochi Corporation</a>
               </div>
             </div>
 
             <div>
-              <h3 className="text-xl font-bold mb-6 text-green-200">Quick Links</h3>
+              <h3 className="text-xl font-bold mb-6 text-emerald-200">Quick Links</h3>
               <div className="space-y-3 text-sm">
-                <Link to="/sitemap" className="block hover:text-green-300 transition-colors duration-200">Site Map</Link>
-                <Link to="/rti" className="block hover:text-green-300 transition-colors duration-200">RTI</Link>
-                <Link to="/faq" className="block hover:text-green-300 transition-colors duration-200">FAQ's</Link>
-                <Link to="/security" className="block hover:text-green-300 transition-colors duration-200">Security</Link>
-                <Link to="/contact" className="block hover:text-green-300 transition-colors duration-200">Help & Contact</Link>
-                <Link to="/disclaimer" className="block hover:text-green-300 transition-colors duration-200">Disclaimer</Link>
-                <Link to="/privacy" className="block hover:text-green-300 transition-colors duration-200">Privacy Policy</Link>
+                <Link to="/sitemap" className="block hover:text-emerald-300 transition-colors duration-200">Site Map</Link>
+                <Link to="/rti" className="block hover:text-emerald-300 transition-colors duration-200">RTI</Link>
+                <Link to="/faq" className="block hover:text-emerald-300 transition-colors duration-200">FAQ's</Link>
+                <Link to="/security" className="block hover:text-emerald-300 transition-colors duration-200">Security</Link>
+                <Link to="/contact" className="block hover:text-emerald-300 transition-colors duration-200">Help & Contact</Link>
+                <Link to="/disclaimer" className="block hover:text-emerald-300 transition-colors duration-200">Disclaimer</Link>
+                <Link to="/privacy" className="block hover:text-emerald-300 transition-colors duration-200">Privacy Policy</Link>
               </div>
             </div>
 
             <div>
-              <h3 className="text-xl font-bold mb-6 text-green-200">Connect With Us</h3>
+              <h3 className="text-xl font-bold mb-6 text-emerald-200">Connect With Us</h3>
               <div className="flex space-x-4 mb-6">
-                <a href="#" className="hover:text-green-300 transition-colors duration-200 p-2 bg-green-800 rounded-full hover:bg-green-700"><Facebook className="w-6 h-6" /></a>
-                <a href="#" className="hover:text-green-300 transition-colors duration-200 p-2 bg-green-800 rounded-full hover:bg-green-700"><Twitter className="w-6 h-6" /></a>
-                <a href="#" className="hover:text-green-300 transition-colors duration-200 p-2 bg-green-800 rounded-full hover:bg-green-700"><Youtube className="w-6 h-6" /></a>
-                <a href="#" className="hover:text-green-300 transition-colors duration-200 p-2 bg-green-800 rounded-full hover:bg-green-700"><Instagram className="w-6 h-6" /></a>
+                <a href="#" className="hover:text-emerald-300 transition-colors duration-200 p-2 bg-emerald-800 rounded-full hover:bg-emerald-700"><Facebook className="w-6 h-6" /></a>
+                <a href="#" className="hover:text-emerald-300 transition-colors duration-200 p-2 bg-emerald-800 rounded-full hover:bg-emerald-700"><Twitter className="w-6 h-6" /></a>
+                <a href="#" className="hover:text-emerald-300 transition-colors duration-200 p-2 bg-emerald-800 rounded-full hover:bg-emerald-700"><Youtube className="w-6 h-6" /></a>
+                <a href="#" className="hover:text-emerald-300 transition-colors duration-200 p-2 bg-emerald-800 rounded-full hover:bg-emerald-700"><Instagram className="w-6 h-6" /></a>
               </div>
               <div className="space-y-3 text-sm">
                 <div className="flex items-center">
-                  <Phone className="w-4 h-4 mr-3 text-green-300" />
+                  <Phone className="w-4 h-4 mr-3 text-emerald-300" />
                   <span>+91 484 230 1230</span>
                 </div>
                 <div className="flex items-center">
-                  <Mail className="w-4 h-4 mr-3 text-green-300" />
+                  <Mail className="w-4 h-4 mr-3 text-emerald-300" />
                   <span>info@kochimetro.org</span>
                 </div>
                 <div className="flex items-center">
-                  <Globe className="w-4 h-4 mr-3 text-green-300" />
+                  <Globe className="w-4 h-4 mr-3 text-emerald-300" />
                   <span>www.kochimetro.org</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-green-700 mt-12 pt-8 text-center text-sm">
+          <div className="border-t border-emerald-700 mt-12 pt-8 text-center text-sm">
             <p>© 2025 Kochi Metro Rail Limited. All Rights Reserved.</p>
           </div>
         </div>
