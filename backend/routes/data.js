@@ -1,36 +1,92 @@
-import express from 'express';
-import Trainset from '../models/Trainset.js';
-import Metrics from '../models/Metrics.js';
+import express from "express";
+import mongoose from "mongoose";
+import Trainset from "../models/Trainset.js";
+import Metrics from "../models/Metrics.js";
 
 const router = express.Router();
 
 // @route   GET /api/data/trainsets
-// @desc    Get all trainsets from MongoDB
+// @desc    Get all trainsets from MongoDB Atlas (fresh CSV data)
 // @access  Public
-router.get('/trainsets', async (req, res) => {
+router.get("/trainsets", async (req, res) => {
   try {
-    const trainsets = await Trainset.find()
-      .sort({ bay_position: 1 });
+    console.log("📡 Trainsets API request received");
 
-    // Transform data to match frontend interface
-    const transformedTrainsets = trainsets.map(trainset => ({
+    // Use direct database query to get fresh CSV data
+    const db = req.app.locals.db || mongoose.connection.db;
+
+    if (!db) {
+      console.error("❌ Database connection not available");
+      return res.status(503).json({
+        message: "Database connection not available",
+        error: "Database unavailable",
+      });
+    }
+
+    console.log("🔍 Fetching trainsets from database...");
+    const trainsets = await db
+      .collection("trainsets")
+      .find({})
+      .sort({ bay_position: 1 })
+      .toArray();
+
+    console.log(`✅ Found ${trainsets.length} trainsets`);
+
+    // Transform CSV data to match frontend interface
+    const transformedTrainsets = trainsets.map((trainset) => ({
       id: trainset._id.toString(),
-      number: trainset.number,
-      status: trainset.status,
+      number: trainset.rake_number || trainset.trainset_id, // Use rake_number from CSV
+      status: trainset.current_status || trainset.status, // Use current_status from CSV
       bay_position: trainset.bay_position,
       mileage: trainset.mileage,
-      last_cleaning: trainset.last_cleaning.toISOString(),
+      last_cleaning: trainset.last_cleaning
+        ? trainset.last_cleaning.toISOString()
+        : new Date().toISOString(),
       branding_priority: trainset.branding_priority,
       availability_percentage: trainset.availability_percentage,
-      created_at: trainset.createdAt.toISOString(),
-      updated_at: trainset.updatedAt.toISOString()
+      created_at: trainset.createdAt
+        ? trainset.createdAt.toISOString()
+        : new Date().toISOString(),
+      updated_at: trainset.updatedAt
+        ? trainset.updatedAt.toISOString()
+        : new Date().toISOString(),
+      // Additional CSV fields
+      rake_number: trainset.rake_number,
+      make_model: trainset.make_model,
+      year_commissioned: trainset.year_commissioned,
+      home_depot: trainset.home_depot,
     }));
 
+    console.log(
+      `✅ Returning ${transformedTrainsets.length} transformed trainsets`
+    );
     res.json(transformedTrainsets);
   } catch (error) {
-    console.error('Error fetching trainsets:', error);
+    console.error("❌ Error fetching trainsets:", error.message);
+    console.error("Stack trace:", error.stack);
+
+    // Check if it's a database connection error
+    if (
+      error.name === "MongoNetworkError" ||
+      error.message.includes("connection")
+    ) {
+      return res.status(503).json({
+        message: "Database connection error",
+        error: "Database temporarily unavailable",
+      });
+    }
+
+    // Check if it's a timeout error
+    if (error.name === "MongoTimeoutError") {
+      return res.status(504).json({
+        message: "Database query timeout",
+        error: "Request took too long to process",
+      });
+    }
+
     res.status(500).json({
-      message: 'Server error while fetching trainsets'
+      message: "Server error while fetching trainsets",
+      error: error.message,
     });
   }
 });
@@ -38,34 +94,50 @@ router.get('/trainsets', async (req, res) => {
 // @route   GET /api/data/trainsets/:id
 // @desc    Get single trainset by ID from MongoDB
 // @access  Public
-router.get('/trainsets/:id', async (req, res) => {
+router.get("/trainsets/:id", async (req, res) => {
   try {
-    const trainset = await Trainset.findById(req.params.id);
+    // Use direct database query to get fresh CSV data
+    const db = req.app.locals.db || mongoose.connection.db;
+    const trainset = await db
+      .collection("trainsets")
+      .findOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
 
     if (!trainset) {
       return res.status(404).json({
-        message: 'Trainset not found'
+        message: "Trainset not found",
       });
     }
 
+    // Transform CSV data to match frontend interface
     const transformedTrainset = {
       id: trainset._id.toString(),
-      number: trainset.number,
-      status: trainset.status,
+      number: trainset.rake_number || trainset.trainset_id, // Use rake_number from CSV
+      status: trainset.current_status || trainset.status, // Use current_status from CSV
       bay_position: trainset.bay_position,
       mileage: trainset.mileage,
-      last_cleaning: trainset.last_cleaning.toISOString(),
+      last_cleaning: trainset.last_cleaning
+        ? trainset.last_cleaning.toISOString()
+        : new Date().toISOString(),
       branding_priority: trainset.branding_priority,
       availability_percentage: trainset.availability_percentage,
-      created_at: trainset.createdAt.toISOString(),
-      updated_at: trainset.updatedAt.toISOString()
+      created_at: trainset.createdAt
+        ? trainset.createdAt.toISOString()
+        : new Date().toISOString(),
+      updated_at: trainset.updatedAt
+        ? trainset.updatedAt.toISOString()
+        : new Date().toISOString(),
+      // Additional CSV fields
+      rake_number: trainset.rake_number,
+      make_model: trainset.make_model,
+      year_commissioned: trainset.year_commissioned,
+      home_depot: trainset.home_depot,
     };
 
     res.json(transformedTrainset);
   } catch (error) {
-    console.error('Error fetching trainset:', error);
+    console.error("Error fetching trainset:", error);
     res.status(500).json({
-      message: 'Server error while fetching trainset'
+      message: "Server error while fetching trainset",
     });
   }
 });
@@ -73,17 +145,21 @@ router.get('/trainsets/:id', async (req, res) => {
 // @route   GET /api/data/metrics
 // @desc    Get current realtime metrics from MongoDB
 // @access  Public
-router.get('/metrics', async (req, res) => {
+router.get("/metrics", async (req, res) => {
   try {
+    console.log("📊 Metrics API request received");
+
     // Get the most recent metrics
-    const metrics = await Metrics.findOne()
-      .sort({ timestamp: -1 });
+    const metrics = await Metrics.findOne().sort({ timestamp: -1 });
 
     if (!metrics) {
+      console.log("⚠️  No metrics found in database");
       return res.status(404).json({
-        message: 'No metrics found'
+        message: "No metrics found",
       });
     }
+
+    console.log("✅ Metrics found, transforming data...");
 
     // Transform data to match frontend interface
     const transformedMetrics = {
@@ -93,16 +169,31 @@ router.get('/metrics', async (req, res) => {
       planning_status: {
         schedules_generated: metrics.planning_status.schedules_generated,
         ai_confidence_avg: metrics.planning_status.ai_confidence_avg,
-        last_optimization: metrics.planning_status.last_optimization
+        last_optimization: metrics.planning_status.last_optimization,
       },
-      alerts: metrics.alerts
+      alerts: metrics.alerts,
     };
 
+    console.log("✅ Returning transformed metrics");
     res.json(transformedMetrics);
   } catch (error) {
-    console.error('Error fetching metrics:', error);
+    console.error("❌ Error fetching metrics:", error.message);
+    console.error("Stack trace:", error.stack);
+
+    // Check if it's a database connection error
+    if (
+      error.name === "MongoNetworkError" ||
+      error.message.includes("connection")
+    ) {
+      return res.status(503).json({
+        message: "Database connection error",
+        error: "Database temporarily unavailable",
+      });
+    }
+
     res.status(500).json({
-      message: 'Server error while fetching metrics'
+      message: "Server error while fetching metrics",
+      error: error.message,
     });
   }
 });
@@ -110,20 +201,20 @@ router.get('/metrics', async (req, res) => {
 // @route   PUT /api/data/trainsets/:id/status
 // @desc    Update trainset status in MongoDB
 // @access  Public
-router.put('/trainsets/:id/status', async (req, res) => {
+router.put("/trainsets/:id/status", async (req, res) => {
   try {
     const { status } = req.body;
 
     if (!status) {
       return res.status(400).json({
-        message: 'Status is required'
+        message: "Status is required",
       });
     }
 
-    const validStatuses = ['ready', 'standby', 'maintenance', 'critical'];
+    const validStatuses = ["ready", "standby", "maintenance", "critical"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
-        message: 'Invalid status value'
+        message: "Invalid status value",
       });
     }
 
@@ -135,7 +226,7 @@ router.put('/trainsets/:id/status', async (req, res) => {
 
     if (!trainset) {
       return res.status(404).json({
-        message: 'Trainset not found'
+        message: "Trainset not found",
       });
     }
 
@@ -143,18 +234,18 @@ router.put('/trainsets/:id/status', async (req, res) => {
     await updateMetricsAfterStatusChange();
 
     res.json({
-      message: 'Trainset status updated successfully',
+      message: "Trainset status updated successfully",
       trainset: {
         id: trainset._id.toString(),
         number: trainset.number,
         status: trainset.status,
-        availability_percentage: trainset.availability_percentage
-      }
+        availability_percentage: trainset.availability_percentage,
+      },
     });
   } catch (error) {
-    console.error('Error updating trainset status:', error);
+    console.error("Error updating trainset status:", error);
     res.status(500).json({
-      message: 'Server error while updating trainset status'
+      message: "Server error while updating trainset status",
     });
   }
 });
@@ -162,28 +253,30 @@ router.put('/trainsets/:id/status', async (req, res) => {
 // @route   POST /api/data/ai-schedule
 // @desc    Generate AI-optimized schedule using MongoDB data
 // @access  Public
-router.post('/ai-schedule', async (req, res) => {
+router.post("/ai-schedule", async (req, res) => {
   try {
     const { date } = req.body;
 
     if (!date) {
       return res.status(400).json({
-        message: 'Date is required'
+        message: "Date is required",
       });
     }
 
     // Get all trainsets for comprehensive AI analysis
-    const allTrainsets = await Trainset.find()
-      .sort({ availability_percentage: -1, branding_priority: -1 });
+    const allTrainsets = await Trainset.find().sort({
+      availability_percentage: -1,
+      branding_priority: -1,
+    });
 
     if (allTrainsets.length === 0) {
       return res.status(400).json({
-        message: 'No trainsets found for analysis'
+        message: "No trainsets found for analysis",
       });
     }
 
     // Generate AI recommendations for all trainsets
-    const recommendations = allTrainsets.map(trainset => {
+    const recommendations = allTrainsets.map((trainset) => {
       let recommendedStatus = trainset.status;
       let confidence = 0.8;
       let priority = 5;
@@ -191,90 +284,107 @@ router.post('/ai-schedule', async (req, res) => {
       const riskFactors = [];
 
       // Enhanced AI logic simulation with comprehensive analysis
-      
+
       // Critical conditions (highest priority)
       if (trainset.mileage > 65000) {
-        recommendedStatus = 'critical';
+        recommendedStatus = "critical";
         confidence = 0.98;
         priority = 10;
-        reasoning.push('Extremely high mileage - immediate attention required');
-        reasoning.push('Safety inspection required');
-        riskFactors.push('Potential mechanical failure risk');
-        riskFactors.push('Extended service intervals exceeded');
+        reasoning.push("Extremely high mileage - immediate attention required");
+        reasoning.push("Safety inspection required");
+        riskFactors.push("Potential mechanical failure risk");
+        riskFactors.push("Extended service intervals exceeded");
       } else if (trainset.availability_percentage < 55) {
-        recommendedStatus = 'critical';
+        recommendedStatus = "critical";
         confidence = 0.95;
         priority = 9;
-        reasoning.push('Critical availability threshold breached');
-        reasoning.push('Immediate maintenance intervention required');
-        riskFactors.push('Service reliability compromised');
-      } 
-      
+        reasoning.push("Critical availability threshold breached");
+        reasoning.push("Immediate maintenance intervention required");
+        riskFactors.push("Service reliability compromised");
+      }
+
       // Maintenance conditions
-      else if (trainset.mileage > 50000 && trainset.availability_percentage < 85) {
-        recommendedStatus = 'maintenance';
+      else if (
+        trainset.mileage > 50000 &&
+        trainset.availability_percentage < 85
+      ) {
+        recommendedStatus = "maintenance";
         confidence = 0.9;
         priority = 8;
-        reasoning.push('High mileage combined with declining availability');
-        reasoning.push('Comprehensive maintenance scheduled');
-        riskFactors.push('Performance degradation trend detected');
+        reasoning.push("High mileage combined with declining availability");
+        reasoning.push("Comprehensive maintenance scheduled");
+        riskFactors.push("Performance degradation trend detected");
       } else if (trainset.availability_percentage < 80) {
-        recommendedStatus = 'maintenance';
+        recommendedStatus = "maintenance";
         confidence = 0.85;
         priority = 7;
-        reasoning.push('Availability below operational threshold');
-        reasoning.push('Preventive maintenance recommended');
+        reasoning.push("Availability below operational threshold");
+        reasoning.push("Preventive maintenance recommended");
       } else if (trainset.mileage > 45000) {
-        recommendedStatus = 'maintenance';
+        recommendedStatus = "maintenance";
         confidence = 0.8;
         priority = 6;
-        reasoning.push('Scheduled maintenance window approaching');
-        reasoning.push('Proactive service optimization');
+        reasoning.push("Scheduled maintenance window approaching");
+        reasoning.push("Proactive service optimization");
       }
-      
+
       // Ready for service conditions
-      else if (trainset.availability_percentage >= 95 && trainset.branding_priority >= 8) {
-        recommendedStatus = 'ready';
+      else if (
+        trainset.availability_percentage >= 95 &&
+        trainset.branding_priority >= 8
+      ) {
+        recommendedStatus = "ready";
         confidence = 0.95;
         priority = 9;
-        reasoning.push('Excellent performance metrics');
-        reasoning.push('High revenue potential - premium branding');
-        reasoning.push('Optimal passenger experience delivery');
-      } else if (trainset.availability_percentage >= 90 && trainset.mileage < 40000) {
-        recommendedStatus = 'ready';
+        reasoning.push("Excellent performance metrics");
+        reasoning.push("High revenue potential - premium branding");
+        reasoning.push("Optimal passenger experience delivery");
+      } else if (
+        trainset.availability_percentage >= 90 &&
+        trainset.mileage < 40000
+      ) {
+        recommendedStatus = "ready";
         confidence = 0.9;
         priority = 8;
-        reasoning.push('Strong operational performance');
-        reasoning.push('Low wear and tear profile');
-        reasoning.push('Suitable for high-frequency service');
+        reasoning.push("Strong operational performance");
+        reasoning.push("Low wear and tear profile");
+        reasoning.push("Suitable for high-frequency service");
       }
-      
+
       // Standby conditions
-      else if (trainset.availability_percentage >= 85 && trainset.branding_priority < 7) {
-        recommendedStatus = 'standby';
+      else if (
+        trainset.availability_percentage >= 85 &&
+        trainset.branding_priority < 7
+      ) {
+        recommendedStatus = "standby";
         confidence = 0.85;
         priority = 5;
-        reasoning.push('Good operational capacity');
-        reasoning.push('Optimal for backup service role');
-        reasoning.push('Cost-effective reserve deployment');
+        reasoning.push("Good operational capacity");
+        reasoning.push("Optimal for backup service role");
+        reasoning.push("Cost-effective reserve deployment");
       } else {
         // Default standby recommendation
-        recommendedStatus = 'standby';
+        recommendedStatus = "standby";
         confidence = 0.75;
         priority = 4;
-        reasoning.push('Standard operational capacity');
-        reasoning.push('Available for flexible deployment');
+        reasoning.push("Standard operational capacity");
+        reasoning.push("Available for flexible deployment");
       }
 
       // Additional risk factor analysis
-      const daysSinceLastCleaning = Math.floor((new Date() - new Date(trainset.last_cleaning)) / (1000 * 60 * 60 * 24));
+      const daysSinceLastCleaning = Math.floor(
+        (new Date() - new Date(trainset.last_cleaning)) / (1000 * 60 * 60 * 24)
+      );
       if (daysSinceLastCleaning > 10) {
-        riskFactors.push('Extended cleaning interval detected');
+        riskFactors.push("Extended cleaning interval detected");
         priority = Math.min(priority + 1, 10);
       }
 
-      if (trainset.branding_priority <= 3 && trainset.availability_percentage < 70) {
-        riskFactors.push('Low priority train with declining performance');
+      if (
+        trainset.branding_priority <= 3 &&
+        trainset.availability_percentage < 70
+      ) {
+        riskFactors.push("Low priority train with declining performance");
       }
 
       return {
@@ -283,7 +393,7 @@ router.post('/ai-schedule', async (req, res) => {
         confidence_score: confidence,
         reasoning,
         priority_score: priority,
-        risk_factors: riskFactors
+        risk_factors: riskFactors,
       };
     });
 
@@ -291,13 +401,18 @@ router.post('/ai-schedule', async (req, res) => {
     await Metrics.findOneAndUpdate(
       {},
       {
-        $inc: { 'planning_status.schedules_generated': 1 },
-        $set: { 
-          'planning_status.last_optimization': new Date(),
-          'planning_status.ai_confidence_avg': Math.round(
-            recommendations.reduce((sum, rec) => sum + rec.confidence_score, 0) / recommendations.length * 100
-          )
-        }
+        $inc: { "planning_status.schedules_generated": 1 },
+        $set: {
+          "planning_status.last_optimization": new Date(),
+          "planning_status.ai_confidence_avg": Math.round(
+            (recommendations.reduce(
+              (sum, rec) => sum + rec.confidence_score,
+              0
+            ) /
+              recommendations.length) *
+              100
+          ),
+        },
       },
       { sort: { timestamp: -1 } }
     );
@@ -308,21 +423,27 @@ router.post('/ai-schedule', async (req, res) => {
         acc[rec.recommended_status] = (acc[rec.recommended_status] || 0) + 1;
         return acc;
       }, {}),
-      average_confidence: Math.round(recommendations.reduce((sum, rec) => sum + rec.confidence_score, 0) / recommendations.length * 100) / 100,
-      high_risk_count: recommendations.filter(r => r.risk_factors.length > 0).length,
-      optimization_timestamp: new Date().toISOString()
+      average_confidence:
+        Math.round(
+          (recommendations.reduce((sum, rec) => sum + rec.confidence_score, 0) /
+            recommendations.length) *
+            100
+        ) / 100,
+      high_risk_count: recommendations.filter((r) => r.risk_factors.length > 0)
+        .length,
+      optimization_timestamp: new Date().toISOString(),
     };
 
     res.json({
       success: true,
       recommendations,
       summary,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error generating AI schedule:', error);
+    console.error("Error generating AI schedule:", error);
     res.status(500).json({
-      message: 'Server error while generating AI schedule'
+      message: "Server error while generating AI schedule",
     });
   }
 });
@@ -331,7 +452,7 @@ router.post('/ai-schedule', async (req, res) => {
 const updateMetricsAfterStatusChange = async () => {
   try {
     const trainsets = await Trainset.find();
-    
+
     const statusCounts = trainsets.reduce((acc, train) => {
       acc[train.status] = (acc[train.status] || 0) + 1;
       return acc;
@@ -346,7 +467,8 @@ const updateMetricsAfterStatusChange = async () => {
     const operationalFleet = readyCount + standbyCount;
     const serviceability = Math.round((operationalFleet / totalFleet) * 100);
     const avgAvailability = Math.round(
-      trainsets.reduce((sum, train) => sum + train.availability_percentage, 0) / totalFleet
+      trainsets.reduce((sum, train) => sum + train.availability_percentage, 0) /
+        totalFleet
     );
 
     // Update the most recent metrics
@@ -355,20 +477,20 @@ const updateMetricsAfterStatusChange = async () => {
       {
         $set: {
           timestamp: new Date(),
-          'fleet_status.total_fleet': totalFleet,
-          'fleet_status.ready': readyCount,
-          'fleet_status.standby': standbyCount,
-          'fleet_status.maintenance': maintenanceCount,
-          'fleet_status.critical': criticalCount,
-          'fleet_status.serviceability': serviceability,
-          'fleet_status.avg_availability': avgAvailability,
-          'current_kpis.fleet_availability': serviceability
-        }
+          "fleet_status.total_fleet": totalFleet,
+          "fleet_status.ready": readyCount,
+          "fleet_status.standby": standbyCount,
+          "fleet_status.maintenance": maintenanceCount,
+          "fleet_status.critical": criticalCount,
+          "fleet_status.serviceability": serviceability,
+          "fleet_status.avg_availability": avgAvailability,
+          "current_kpis.fleet_availability": serviceability,
+        },
       },
       { sort: { timestamp: -1 } }
     );
   } catch (error) {
-    console.error('Error updating metrics:', error);
+    console.error("Error updating metrics:", error);
   }
 };
 

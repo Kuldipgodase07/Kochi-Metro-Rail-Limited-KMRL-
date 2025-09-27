@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { SystemMetrics } from "./SystemMetrics"
-import { TrainCard } from "./TrainCard"
 import { SchedulingPanel } from "./SchedulingPanel"
 import { AISchedulingPanel } from "./AISchedulingPanel"
 import { ReportsPanel } from "./ReportsPanel"
@@ -18,6 +17,7 @@ import CertificateManagement from '../pages/CertificateManagement'
 import BrandingManagement from '../pages/BrandingManagement'
 import CleaningScheduler from '../pages/CleaningScheduler'
 import ComprehensiveReporting from '../pages/ComprehensiveReporting'
+import TrainScheduling from '../pages/TrainScheduling'
 import { useTrainsets, useRealtimeMetrics, useDailySchedule, useKPIs } from "@/hooks/useTrainData"
 import { RefreshCw, Settings, LogOut, UserCheck } from "lucide-react"
 import KMRLLogo from './KMRLLogo'
@@ -46,11 +46,6 @@ export function Dashboard() {
     const timer = setInterval(() => setLiveTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
-
-  const readyTrainsets = trainsets.filter(t => t.status === 'ready')
-  const standbyTrainsets = trainsets.filter(t => t.status === 'standby')
-  const maintenanceTrainsets = trainsets.filter(t => t.status === 'maintenance')
-  const criticalTrainsets = trainsets.filter(t => t.status === 'critical')
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
@@ -181,30 +176,6 @@ export function Dashboard() {
           <SystemMetrics metrics={metrics} isLoading={metricsLoading} />
         </div>
 
-        {/* Fleet Status Overview */}
-        <div className="mb-8">
-          <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-xl dark:shadow-black/10">
-            <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b dark:border-gray-600">
-              <CardTitle className="flex items-center justify-between text-gray-900 dark:text-white">
-                {t('dashboard.overview')}
-                <div className="flex space-x-2">
-                  <Badge variant="ready" className="shadow-sm">{readyTrainsets.length} {t('status.ready')}</Badge>
-                  <Badge variant="standby" className="shadow-sm">{standbyTrainsets.length} {t('status.standby')}</Badge>
-                  <Badge variant="maintenance" className="shadow-sm">{maintenanceTrainsets.length} {t('status.maintenance')}</Badge>
-                  <Badge variant="critical" className="shadow-sm">{criticalTrainsets.length} {t('status.critical')}</Badge>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {trainsets.map((trainset) => (
-                  <TrainCard key={trainset.id} trainset={trainset} />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Futuristic Navigation */}
         <div className="mb-8">
           <FuturisticNavigation 
@@ -224,6 +195,7 @@ export function Dashboard() {
           {activeTab === 'cleaning' && <CleaningScheduler />}
           {activeTab === 'manual' && <SchedulingPanel trainsets={trainsets} />}
           {activeTab === 'ai' && <AISchedulingPanel trainsets={trainsets} />}
+          {activeTab === 'train-scheduling' && <TrainScheduling />}
           {activeTab === 'reports' && (
             <ReportsPanel 
               trainsets={trainsets}

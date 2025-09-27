@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { 
   Database, 
   BrainCircuit, 
@@ -13,7 +14,9 @@ import {
   BarChart3, 
   PieChart,
   ChevronRight,
-  Circle
+  Circle,
+  Eye,
+  Shield
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -32,6 +35,16 @@ const moduleData = [
     ring: 'ring-blue-200',
     glow: 'from-blue-200/50 to-blue-300/30',
     description: 'Real-time fleet monitoring and analytics'
+  },
+  {
+    id: 'fleet-overview',
+    key: 'modules.fleetOverview',
+    icon: Eye,
+    iconBg: 'bg-slate-50',
+    iconText: 'text-slate-600',
+    ring: 'ring-slate-200',
+    glow: 'from-slate-200/50 to-slate-300/30',
+    description: 'Complete fleet status and performance metrics'
   },
   {
     id: 'induction',
@@ -114,6 +127,36 @@ const moduleData = [
     description: 'AI-powered optimization'
   },
   {
+    id: 'ortools',
+    key: 'scheduling.ortoolsScheduling',
+    icon: BrainCircuit,
+    iconBg: 'bg-purple-50',
+    iconText: 'text-purple-600',
+    ring: 'ring-purple-200',
+    glow: 'from-purple-200/50 to-purple-300/30',
+    description: 'Google OR-Tools constraint programming'
+  },
+  {
+    id: 'sih',
+    key: 'scheduling.sihScheduling',
+    icon: Shield,
+    iconBg: 'bg-emerald-50',
+    iconText: 'text-emerald-600',
+    ring: 'ring-emerald-200',
+    glow: 'from-emerald-200/50 to-emerald-300/30',
+    description: 'SIH-compliant optimization'
+  },
+  {
+    id: 'train-scheduling',
+    key: 'scheduling.trainScheduling',
+    icon: Clock,
+    iconBg: 'bg-indigo-50',
+    iconText: 'text-indigo-600',
+    ring: 'ring-indigo-200',
+    glow: 'from-indigo-200/50 to-indigo-300/30',
+    description: 'Advanced train scheduling algorithms'
+  },
+  {
     id: 'reports',
     key: 'reports.title',
     icon: BarChart3,
@@ -137,7 +180,36 @@ const moduleData = [
 
 export function FuturisticNavigation({ activeTab, onTabChange }: FuturisticNavigationProps) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [hoveredModule, setHoveredModule] = useState<string | null>(null)
+
+  const moduleRoutes: { [key: string]: string } = {
+    'fleet': '/fleet',
+    'fleet-overview': '/fleet-overview',
+    'induction': '/induction', 
+    'simulation': '/simulation',
+    'maintenance': '/maintenance',
+    'certificates': '/certificates',
+    'branding': '/branding',
+    'cleaning': '/cleaning',
+    'manual': '/manual-scheduling',
+    'ai': '/ai-scheduling',
+    'ortools': '/ortools-scheduling',
+    'sih': '/sih-scheduling',
+    'train-scheduling': '/train-scheduling',
+    'reports': '/reports',
+    'comprehensive': '/comprehensive-reports'
+  }
+
+  const handleModuleClick = (moduleId: string) => {
+    const route = moduleRoutes[moduleId]
+    if (route) {
+      navigate(route)
+    } else {
+      // Fallback to tab change for modules without individual pages
+      onTabChange(moduleId)
+    }
+  }
 
   return (
     <div className="relative w-full">
@@ -187,7 +259,7 @@ export function FuturisticNavigation({ activeTab, onTabChange }: FuturisticNavig
 
                 {/* Module card */}
                 <motion.button
-                  onClick={() => onTabChange(module.id)}
+                  onClick={() => handleModuleClick(module.id)}
                   className={`
                     relative w-full p-4 rounded-xl border transition-all duration-300 group
                     ${isActive

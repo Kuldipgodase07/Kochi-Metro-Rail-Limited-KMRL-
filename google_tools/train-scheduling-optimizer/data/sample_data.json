@@ -1,0 +1,220 @@
+{
+  "trains": [
+    {
+      "train_id": "T001",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 1,
+      "mileage": 150,
+      "cleaning_slot": "2023-10-01T08:00:00",
+      "stabling_geometry": "A"
+    },
+    {
+      "train_id": "T002",
+      "fitness_certificate": true,
+      "job_card_status": "in_progress",
+      "branding_priority": 2,
+      "mileage": 200,
+      "cleaning_slot": "2023-10-01T09:00:00",
+      "stabling_geometry": "B"
+    },
+    {
+      "train_id": "T003",
+      "fitness_certificate": false,
+      "job_card_status": "completed",
+      "branding_priority": 3,
+      "mileage": 180,
+      "cleaning_slot": "2023-10-01T10:00:00",
+      "stabling_geometry": "C"
+    },
+    {
+      "train_id": "T004",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 1,
+      "mileage": 220,
+      "cleaning_slot": "2023-10-01T11:00:00",
+      "stabling_geometry": "A"
+    },
+    {
+      "train_id": "T005",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 2,
+      "mileage": 160,
+      "cleaning_slot": "2023-10-01T12:00:00",
+      "stabling_geometry": "B"
+    },
+    {
+      "train_id": "T006",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 3,
+      "mileage": 190,
+      "cleaning_slot": "2023-10-01T13:00:00",
+      "stabling_geometry": "C"
+    },
+    {
+      "train_id": "T007",
+      "fitness_certificate": true,
+      "job_card_status": "in_progress",
+      "branding_priority": 1,
+      "mileage": 210,
+      "cleaning_slot": "2023-10-01T14:00:00",
+      "stabling_geometry": "A"
+    },
+    {
+      "train_id": "T008",
+      "fitness_certificate": false,
+      "job_card_status": "completed",
+      "branding_priority": 2,
+      "mileage": 175,
+      "cleaning_slot": "2023-10-01T15:00:00",
+      "stabling_geometry": "B"
+    },
+    {
+      "train_id": "T009",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 3,
+      "mileage": 145,
+      "cleaning_slot": "2023-10-01T16:00:00",
+      "stabling_geometry": "C"
+    },
+    {
+      "train_id": "T010",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 1,
+      "mileage": 155,
+      "cleaning_slot": "2023-10-01T17:00:00",
+      "stabling_geometry": "A"
+    },
+    {
+      "train_id": "T011",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 2,
+      "mileage": 165,
+      "cleaning_slot": "2023-10-01T18:00:00",
+      "stabling_geometry": "B"
+    },
+    {
+      "train_id": "T012",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 3,
+      "mileage": 185,
+      "cleaning_slot": "2023-10-01T19:00:00",
+      "stabling_geometry": "C"
+    },
+    {
+      "train_id": "T013",
+      "fitness_certificate": true,
+      "job_card_status": "in_progress",
+      "branding_priority": 1,
+      "mileage": 195,
+      "cleaning_slot": "2023-10-01T20:00:00",
+      "stabling_geometry": "A"
+    },
+    {
+      "train_id": "T014",
+      "fitness_certificate": false,
+      "job_card_status": "completed",
+      "branding_priority": 2,
+      "mileage": 170,
+      "cleaning_slot": "2023-10-01T21:00:00",
+      "stabling_geometry": "B"
+    },
+    {
+      "train_id": "T015",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 3,
+      "mileage": 160,
+      "cleaning_slot": "2023-10-01T22:00:00",
+      "stabling_geometry": "C"
+    },
+    {
+      "train_id": "T016",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 1,
+      "mileage": 150,
+      "cleaning_slot": "2023-10-01T23:00:00",
+      "stabling_geometry": "A"
+    },
+    {
+      "train_id": "T017",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 2,
+      "mileage": 140,
+      "cleaning_slot": "2023-10-01T24:00:00",
+      "stabling_geometry": "B"
+    },
+    {
+      "train_id": "T018",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 3,
+      "mileage": 130,
+      "cleaning_slot": "2023-10-01T25:00:00",
+      "stabling_geometry": "C"
+    },
+    {
+      "train_id": "T019",
+      "fitness_certificate": true,
+      "job_card_status": "in_progress",
+      "branding_priority": 1,
+      "mileage": 120,
+      "cleaning_slot": "2023-10-01T26:00:00",
+      "stabling_geometry": "A"
+    },
+    {
+      "train_id": "T020",
+      "fitness_certificate": false,
+      "job_card_status": "completed",
+      "branding_priority": 2,
+      "mileage": 110,
+      "cleaning_slot": "2023-10-01T27:00:00",
+      "stabling_geometry": "B"
+    },
+    {
+      "train_id": "T021",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 3,
+      "mileage": 100,
+      "cleaning_slot": "2023-10-01T28:00:00",
+      "stabling_geometry": "C"
+    },
+    {
+      "train_id": "T022",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 1,
+      "mileage": 90,
+      "cleaning_slot": "2023-10-01T29:00:00",
+      "stabling_geometry": "A"
+    },
+    {
+      "train_id": "T023",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 2,
+      "mileage": 80,
+      "cleaning_slot": "2023-10-01T30:00:00",
+      "stabling_geometry": "B"
+    },
+    {
+      "train_id": "T024",
+      "fitness_certificate": true,
+      "job_card_status": "completed",
+      "branding_priority": 3,
+      "mileage": 70,
+      "cleaning_slot": "2023-10-01T31:00:00",
+      "stabling_geometry": "C"
+    }
+  ]
+}

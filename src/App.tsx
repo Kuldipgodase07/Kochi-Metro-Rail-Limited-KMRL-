@@ -10,7 +10,23 @@ import Login from '@/pages/Login'
 import SignUp from '@/pages/SignUp'
 import AdminPortal from '@/pages/AdminPortal'
 import SuperAdminApproval from '@/pages/SuperAdminApproval'
+import FleetManagement from '@/pages/FleetManagement'
+import FleetOverviewPage from '@/pages/FleetOverviewPage'
+import InductionPlanning from '@/pages/InductionPlanning'
+import WhatIfSimulation from '@/pages/WhatIfSimulation'
+import MaintenanceTracking from '@/pages/MaintenanceTracking'
+import CertificateManagement from '@/pages/CertificateManagement'
+import BrandingManagement from '@/pages/BrandingManagement'
+import CleaningScheduler from '@/pages/CleaningScheduler'
+import TrainScheduling from '@/pages/TrainScheduling'
+import ComprehensiveReporting from '@/pages/ComprehensiveReporting'
+import ManualSchedulingPage from '@/pages/ManualSchedulingPage'
+import AISchedulingPage from '@/pages/AISchedulingPage'
+import ORToolsSchedulingPage from '@/pages/ORToolsSchedulingPage'
+import SIHSchedulingPage from '@/pages/SIHSchedulingPage'
+import ReportsPage from '@/pages/ReportsPage'
 import NotFound from '@/pages/NotFound'
+import APIDebugger from '@/components/APIDebugger'
 import './App.css'
 
 function App() {
@@ -33,6 +49,85 @@ function App() {
                 <Index />
               </ProtectedRoute>
             } />
+            
+            {/* Module Routes */}
+            <Route path="/fleet" element={
+              <ProtectedRoute>
+                <FleetManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/fleet-overview" element={
+              <ProtectedRoute>
+                <FleetOverviewPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/induction" element={
+              <ProtectedRoute>
+                <InductionPlanning />
+              </ProtectedRoute>
+            } />
+            <Route path="/simulation" element={
+              <ProtectedRoute>
+                <WhatIfSimulation />
+              </ProtectedRoute>
+            } />
+            <Route path="/maintenance" element={
+              <ProtectedRoute>
+                <MaintenanceTracking />
+              </ProtectedRoute>
+            } />
+            <Route path="/certificates" element={
+              <ProtectedRoute>
+                <CertificateManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/branding" element={
+              <ProtectedRoute>
+                <BrandingManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/cleaning" element={
+              <ProtectedRoute>
+                <CleaningScheduler />
+              </ProtectedRoute>
+            } />
+            <Route path="/manual-scheduling" element={
+              <ProtectedRoute>
+                <ManualSchedulingPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/ai-scheduling" element={
+              <ProtectedRoute>
+                <AISchedulingPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/ortools-scheduling" element={
+              <ProtectedRoute>
+                <ORToolsSchedulingPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/sih-scheduling" element={
+              <ProtectedRoute>
+                <SIHSchedulingPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/train-scheduling" element={
+              <ProtectedRoute>
+                <TrainScheduling />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports" element={
+              <ProtectedRoute>
+                <ReportsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/comprehensive-reports" element={
+              <ProtectedRoute>
+                <ComprehensiveReporting />
+              </ProtectedRoute>
+            } />
+            <Route path="/debug" element={<APIDebugger />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

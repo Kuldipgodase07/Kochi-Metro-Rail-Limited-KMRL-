@@ -1,0 +1,5 @@
+# Google OR-Tools Train Scheduling Service Requirements
+flask==3.0.0
+flask-cors==4.0.0
+ortools>=9.12.4544
+python-dateutil==2.8.2

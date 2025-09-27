@@ -13,6 +13,7 @@
   },
   "modules": {
     "fleetManagement": "Fleet Management",
+    "fleetOverview": "Fleet Overview",
     "inductionPlanning": "Induction Planning",
     "whatIfSimulation": "What-If Simulation",
     "maintenanceTracking": "Maintenance Tracking", 
@@ -51,6 +52,9 @@
     "title": "Train Scheduling",
     "manualScheduling": "Manual Scheduling",
     "aiScheduling": "AI-Powered Scheduling",
+    "ortoolsScheduling": "Google OR-Tools Scheduling",
+    "sihScheduling": "SIH-Compliant Scheduling",
+    "trainScheduling": "Train Scheduling (OR-Tools)",
     "scheduleOptimization": "Schedule Optimization",
     "recommendedSchedule": "Recommended Schedule",
     "currentSchedule": "Current Schedule",
@@ -59,7 +63,27 @@
     "status": "Status",
     "location": "Location",
     "nextService": "Next Service",
-    "actions": "Actions"
+    "actions": "Actions",
+    "runOptimization": "Run Optimization",
+    "optimizing": "Optimizing...",
+    "selectedTrains": "Scheduled Trains",
+    "forReview": "For Review",
+    "exportSchedule": "Export Schedule",
+    "optimizationScore": "Optimization Score",
+    "executionTime": "Execution Time",
+    "solutionStatus": "Status",
+    "startOptimization": "Start Optimization",
+    "readyToOptimize": "Ready to Optimize",
+    "runningOptimization": "Running Optimization",
+    "analyzing": "Analyzing",
+    "criteria": {
+      "fitnesseCertificates": "fitness certificates",
+      "jobCards": "job cards", 
+      "brandingPriorities": "branding priorities",
+      "mileageBalancing": "mileage balancing",
+      "cleaningSlots": "cleaning slots",
+      "stablingGeometry": "stabling geometry"
+    }
   },
   "aiScheduling": {
     "title": "AI-Powered Scheduling",
@@ -117,7 +141,8 @@
     "maintenance": "Maintenance",
     "critical": "Critical",
     "operational": "Operational",
-    "nonOperational": "Non-Operational"
+    "nonOperational": "Non-Operational",
+    "unknown": "Unknown"
   },
   "maintenance": {
     "scheduled": "Scheduled Maintenance",

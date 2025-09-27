@@ -73,21 +73,47 @@ export const useTrainsetData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTrainsets = async () => {
+  const fetchTrainsets = async (retryCount = 0) => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${API_BASE}/trainsets`);
+      const response = await fetch(`${API_BASE}/trainsets`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Add timeout
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Handle specific error codes
+        if (response.status === 503) {
+          throw new Error('Database temporarily unavailable. Please try again in a moment.');
+        } else if (response.status === 504) {
+          throw new Error('Request timeout. Please try again.');
+        } else if (response.status === 429) {
+          throw new Error('Too many requests. Please wait a moment.');
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       }
       
       const data = await response.json();
       setTrainsets(data);
+      console.log(`✅ Successfully fetched ${data.length} trainsets`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch trainsets');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch trainsets';
+      
+      // Retry logic for network errors
+      if (retryCount < 3 && (err instanceof TypeError || errorMessage.includes('fetch'))) {
+        console.log(`🔄 Retrying trainsets fetch (attempt ${retryCount + 1}/3)...`);
+        setTimeout(() => fetchTrainsets(retryCount + 1), 1000 * (retryCount + 1)); // Exponential backoff
+        return;
+      }
+      
+      setError(errorMessage);
       console.error('Error fetching trainsets:', err);
     } finally {
       setLoading(false);
@@ -112,21 +138,49 @@ export const useMetricsData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = async (retryCount = 0) => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${API_BASE}/metrics`);
+      const response = await fetch(`${API_BASE}/metrics`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Add timeout
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Handle specific error codes
+        if (response.status === 503) {
+          throw new Error('Database temporarily unavailable. Please try again in a moment.');
+        } else if (response.status === 504) {
+          throw new Error('Request timeout. Please try again.');
+        } else if (response.status === 429) {
+          throw new Error('Too many requests. Please wait a moment.');
+        } else if (response.status === 404) {
+          throw new Error('Metrics data not found. Please refresh the page.');
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       }
       
       const data = await response.json();
       setMetrics(data);
+      console.log('✅ Successfully fetched metrics data');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch metrics';
+      
+      // Retry logic for network errors
+      if (retryCount < 3 && (err instanceof TypeError || errorMessage.includes('fetch'))) {
+        console.log(`🔄 Retrying metrics fetch (attempt ${retryCount + 1}/3)...`);
+        setTimeout(() => fetchMetrics(retryCount + 1), 1000 * (retryCount + 1)); // Exponential backoff
+        return;
+      }
+      
+      setError(errorMessage);
       console.error('Error fetching metrics:', err);
     } finally {
       setLoading(false);

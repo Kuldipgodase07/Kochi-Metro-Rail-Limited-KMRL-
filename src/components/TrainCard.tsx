@@ -35,7 +35,11 @@ export function TrainCard({ trainset }: TrainCardProps) {
     critical: { label: t('status.critical'), color: 'critical', icon: '⚠' }
   }
 
-  const currentStatus = statusConfig[trainset.status]
+  const currentStatus = statusConfig[trainset.status] || {
+    label: t('status.unknown'),
+    color: 'secondary',
+    icon: '?'
+  }
 
   return (
     <Card className="train-card bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200 dark:border-gray-700 hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/20 transition-all duration-300 hover:scale-[1.02]">
@@ -48,7 +52,7 @@ export function TrainCard({ trainset }: TrainCardProps) {
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white">{trainset.number}</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Bay {trainset.bay_position}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Bay {trainset.bay_position || 'N/A'}</p>
             </div>
           </div>
           <Badge variant={currentStatus.color as any} className="text-xs shadow-sm">
@@ -60,24 +64,24 @@ export function TrainCard({ trainset }: TrainCardProps) {
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600 dark:text-gray-300">{t('trainset.availability')}</span>
-            <span className="font-medium text-gray-900 dark:text-white">{trainset.availability_percentage}%</span>
+            <span className="font-medium text-gray-900 dark:text-white">{trainset.availability_percentage || 0}%</span>
           </div>
-          <Progress value={trainset.availability_percentage} className="h-2" />
+          <Progress value={trainset.availability_percentage || 0} className="h-2" />
 
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="flex items-center space-x-1">
               <Gauge className="h-3 w-3 text-gray-400 dark:text-gray-500" />
-              <span className="text-gray-600 dark:text-gray-300">{trainset.mileage.toLocaleString()} km</span>
+              <span className="text-gray-600 dark:text-gray-300">{(trainset.mileage || 0).toLocaleString()} km</span>
             </div>
             <div className="flex items-center space-x-1">
               <Calendar className="h-3 w-3 text-gray-400 dark:text-gray-500" />
-              <span className="text-gray-600 dark:text-gray-300">{formatDate(trainset.last_cleaning)}</span>
+              <span className="text-gray-600 dark:text-gray-300">{trainset.last_cleaning ? formatDate(trainset.last_cleaning) : 'N/A'}</span>
             </div>
           </div>
 
           <div className="flex items-center justify-between text-xs">
             <span className="text-gray-600">Branding Priority</span>
-            <span className="font-medium">{trainset.branding_priority}/10</span>
+            <span className="font-medium">{trainset.branding_priority || 0}/10</span>
           </div>
         </div>
 
