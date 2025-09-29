@@ -3,22 +3,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { SystemMetrics } from "./SystemMetrics"
-import { SchedulingPanel } from "./SchedulingPanel"
-import { AISchedulingPanel } from "./AISchedulingPanel"
-import { ReportsPanel } from "./ReportsPanel"
 import { SettingsPanel } from './SettingsPanel-simple'
 import { LanguageSelector } from './LanguageSelector'
 import { FuturisticNavigation } from './FuturisticNavigation'
-import FleetManagement from '../pages/FleetManagement'
-import InductionPlanning from '../pages/InductionPlanning'
-import WhatIfSimulation from '../pages/WhatIfSimulation'
-import MaintenanceTracking from '../pages/MaintenanceTracking'
-import CertificateManagement from '../pages/CertificateManagement'
-import BrandingManagement from '../pages/BrandingManagement'
-import CleaningScheduler from '../pages/CleaningScheduler'
-import ComprehensiveReporting from '../pages/ComprehensiveReporting'
-import TrainScheduling from '../pages/TrainScheduling'
-import { useTrainsets, useRealtimeMetrics, useDailySchedule, useKPIs } from "@/hooks/useTrainData"
+import { useRealtimeMetrics } from "@/hooks/useTrainData"
 import { RefreshCw, Settings, LogOut, UserCheck } from "lucide-react"
 import KMRLLogo from './KMRLLogo'
 import { useState, useEffect } from "react"
@@ -30,14 +18,10 @@ import { NotificationsBell } from './NotificationsBell'
 
 export function Dashboard() {
   const { t } = useTranslation()
-  const { data: trainsets = [], refetch: refetchTrainsets } = useTrainsets()
   const { data: metrics, isLoading: metricsLoading, refetch: refetchMetrics } = useRealtimeMetrics()
-  const { data: scheduleData = [], refetch: refetchSchedule } = useDailySchedule(new Date().toISOString().split('T')[0])
-  const { data: kpiData = [], refetch: refetchKPIs } = useKPIs()
   const { toast } = useToast()
   const { user, logout } = useAuth()
   
-  const [activeTab, setActiveTab] = useState('fleet')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [liveTime, setLiveTime] = useState(new Date())
@@ -50,15 +34,10 @@ export function Dashboard() {
   const handleRefresh = async () => {
     setIsRefreshing(true)
     try {
-      await Promise.all([
-        refetchTrainsets(),
-        refetchMetrics(),
-        refetchSchedule(),
-        refetchKPIs()
-      ])
+      await refetchMetrics()
       toast({
         title: "Data Refreshed",
-        description: "All system data has been updated successfully.",
+        description: "System metrics have been updated successfully.",
       })
     } catch {
       toast({
@@ -81,9 +60,9 @@ export function Dashboard() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-slate-900`}>
+    <div className={`min-h-screen bg-teal-gradient bg-teal-gradient-dark`}>
       {/* Header */}
-      <header className="bg-white/90 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 shadow-sm dark:shadow-xl dark:shadow-black/20">
+      <header className="bg-white/90 dark-header backdrop-blur-md border-b border-teal-200 dark:border-teal-800 sticky top-0 z-50 shadow-sm dark:shadow-xl dark:shadow-black/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
@@ -93,25 +72,25 @@ export function Dashboard() {
                 <p className="text-sm text-gray-600 dark:text-gray-300">{t('app.subtitle')}</p>
               </div>
               {user && (
-                <div className="ml-4 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 dark:border dark:border-blue-500/30 rounded-full">
-                  <span className="text-sm text-blue-800 dark:text-blue-200 font-medium">Welcome, {user.fullName}</span>
+                <div className="ml-4 px-3 py-1 bg-teal-100 dark:bg-teal-900/30 dark:border dark:border-teal-500/30 rounded-full">
+                  <span className="text-sm text-teal-800 dark:text-teal-200 font-medium">Welcome, {user.fullName}</span>
                 </div>
               )}
             </div>
             <div className="flex items-center space-x-4">
               {/* Simple, consistent, interactive Live Time Bar */}
               <div
-                className="flex items-center gap-2 px-4 py-1 rounded-full bg-white/80 dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer select-none"
+                className="flex items-center gap-2 px-4 py-1 rounded-full bg-white/80 dark:bg-teal-900/80 border border-teal-200 dark:border-teal-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer select-none"
                 title="Live Metro Time"
               >
-                <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="12" cy="12" r="10" strokeWidth="2" className="opacity-30" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6l4 2" />
                 </svg>
                 <span className="font-mono text-base font-semibold text-gray-900 dark:text-gray-100 tracking-widest">
                   {liveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
-                <span className="uppercase text-xs text-blue-700 dark:text-blue-300 ml-1 tracking-wider">IST</span>
+                <span className="uppercase text-xs text-teal-700 dark:text-teal-300 ml-1 tracking-wider">IST</span>
               </div>
               <LanguageSelector />
               <NotificationsBell />
@@ -120,7 +99,7 @@ export function Dashboard() {
                 size="sm" 
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="hover:bg-green-50 dark:hover:bg-green-900/20 dark:border-gray-600 dark:text-gray-300 dark:hover:text-green-400 transition-all duration-200"
+                className="hover:bg-teal-50 dark:hover:bg-teal-900/20 dark:border-teal-600 dark:text-gray-300 dark:hover:text-teal-400 transition-all duration-200"
                 title={isRefreshing ? t('common.loading') : t('common.refresh')}
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -128,7 +107,7 @@ export function Dashboard() {
               
               <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:border-gray-600 dark:text-gray-300 dark:hover:text-blue-400 transition-all duration-200" title={t('settings.title')}>
+                  <Button variant="outline" size="sm" className="hover:bg-teal-50 dark:hover:bg-teal-900/20 dark:border-teal-600 dark:text-gray-300 dark:hover:text-teal-400 transition-all duration-200" title={t('settings.title')}>
                     <Settings className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
@@ -147,7 +126,7 @@ export function Dashboard() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className="hover:bg-indigo-50 dark:hover:bg-indigo-900/20 dark:border-gray-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-all duration-200"
+                    className="hover:bg-teal-50 dark:hover:bg-teal-900/20 dark:border-teal-600 dark:text-gray-300 dark:hover:text-teal-400 transition-all duration-200"
                   >
                     <UserCheck className="h-4 w-4 mr-2" />
                     User Approvals
@@ -159,7 +138,7 @@ export function Dashboard() {
                 variant="outline" 
                 size="sm"
                 onClick={handleLogout}
-                className="hover:bg-red-50 dark:hover:bg-red-900/20 dark:border-gray-600 dark:text-gray-300 dark:hover:text-red-400 transition-all duration-200"
+                className="hover:bg-red-50 dark:hover:bg-red-900/20 dark:border-teal-600 dark:text-gray-300 dark:hover:text-red-400 transition-all duration-200"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -178,32 +157,33 @@ export function Dashboard() {
 
         {/* Futuristic Navigation */}
         <div className="mb-8">
-          <FuturisticNavigation 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
-          />
+          <FuturisticNavigation />
         </div>
 
-        {/* Module Content */}
-        <div className="mt-8">
-          {activeTab === 'fleet' && <FleetManagement />}
-          {activeTab === 'induction' && <InductionPlanning />}
-          {activeTab === 'simulation' && <WhatIfSimulation />}
-          {activeTab === 'maintenance' && <MaintenanceTracking />}
-          {activeTab === 'certificates' && <CertificateManagement />}
-          {activeTab === 'branding' && <BrandingManagement />}
-          {activeTab === 'cleaning' && <CleaningScheduler />}
-          {activeTab === 'manual' && <SchedulingPanel trainsets={trainsets} />}
-          {activeTab === 'ai' && <AISchedulingPanel trainsets={trainsets} />}
-          {activeTab === 'train-scheduling' && <TrainScheduling />}
-          {activeTab === 'reports' && (
-            <ReportsPanel 
-              trainsets={trainsets}
-              scheduleData={scheduleData}
-              kpiData={Array.isArray(kpiData) ? kpiData : [kpiData]}
-            />
-          )}
-          {activeTab === 'comprehensive' && <ComprehensiveReporting />}
+        {/* Welcome Message */}
+        <div className="mt-8 text-center">
+          <div className="bg-white/80 dark:bg-teal-900/80 backdrop-blur-sm rounded-2xl border border-teal-200 dark:border-teal-700 p-8 shadow-lg">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Welcome to Kochi Metro Rail Management System
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Select any module from the navigation above to access specific features and management tools.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="bg-teal-50 dark:bg-teal-900/30 rounded-lg p-4">
+                <h3 className="font-semibold text-teal-800 dark:text-teal-200 mb-2">Fleet Management</h3>
+                <p className="text-teal-600 dark:text-teal-300">Track and manage your trainset fleet</p>
+              </div>
+              <div className="bg-teal-50 dark:bg-teal-900/30 rounded-lg p-4">
+                <h3 className="font-semibold text-teal-800 dark:text-teal-200 mb-2">Scheduling</h3>
+                <p className="text-teal-600 dark:text-teal-300">AI-powered train scheduling optimization</p>
+              </div>
+              <div className="bg-teal-50 dark:bg-teal-900/30 rounded-lg p-4">
+                <h3 className="font-semibold text-teal-800 dark:text-teal-200 mb-2">Reports</h3>
+                <p className="text-teal-600 dark:text-teal-300">Comprehensive analytics and reporting</p>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>

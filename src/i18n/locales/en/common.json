@@ -20,7 +20,10 @@
     "certificateManagement": "Certificate Management",
     "brandingManagement": "Branding Management",
     "cleaningScheduler": "Cleaning Scheduler",
-    "comprehensiveReporting": "Comprehensive Reports"
+    "comprehensiveReporting": "Comprehensive Reports",
+    "passengerInfo": "Passenger Information",
+    "ticketingRevenue": "Ticketing & Revenue",
+    "incidentResponse": "Incident & Emergency"
   },
   "dashboard": {
     "title": "Fleet Dashboard",

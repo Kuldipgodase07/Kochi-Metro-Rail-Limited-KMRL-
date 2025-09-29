@@ -169,8 +169,15 @@ export function SystemMetrics({ metrics, isLoading }: SystemMetricsProps) {
                       </div>
                     </div>
                     <Badge 
-                      variant={alert.priority === 'critical' ? 'critical' : 'default'}
-                      className="text-xs"
+                      className={`text-xs px-2 py-1 ${
+                        alert.priority === 'medium' || alert.message?.includes('maintenance')
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : alert.priority === 'low' || alert.message?.includes('cleaning')
+                          ? 'bg-blue-100 text-blue-800'
+                          : alert.priority === 'critical'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}
                     >
                       {alert.priority}
                     </Badge>

@@ -29,6 +29,7 @@
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.3",
     "mongoose": "^8.0.3",
+    "pdfkit": "^0.17.2",
     "react-i18next": "^15.7.3",
     "twilio": "^5.2.4",
     "xlsx": "^0.18.5"

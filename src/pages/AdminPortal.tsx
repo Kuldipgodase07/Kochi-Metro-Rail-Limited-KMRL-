@@ -196,13 +196,13 @@ export default function AdminPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-teal-gradient bg-teal-gradient-dark">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-indigo-600 rounded-lg">
+              <div className="p-2 bg-teal-600 rounded-lg">
                 <Shield className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -215,7 +215,7 @@ export default function AdminPortal() {
                 variant="outline" 
                 size="sm" 
                 onClick={loadPendingUsers}
-                className="hover:bg-green-50"
+                className="hover:bg-teal-50"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh

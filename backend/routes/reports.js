@@ -1,5 +1,6 @@
 import express from 'express';
 import ExcelJS from 'exceljs';
+import PDFDocument from 'pdfkit';
 import Trainset from '../models/Trainset.js';
 import Metrics from '../models/Metrics.js';
 
@@ -341,6 +342,121 @@ router.get('/summary', async (req, res) => {
     console.error('Error generating report summary:', error);
     res.status(500).json({
       message: 'Error generating report summary',
+      error: error.message
+    });
+  }
+});
+
+// @route   POST /api/reports/fleet
+// @desc    Generate PDF fleet report
+// @access  Public
+router.post('/fleet', async (req, res) => {
+  try {
+    console.log('Starting PDF fleet report generation...');
+    
+    // Fetch all data
+    const trainsets = await Trainset.find().sort({ number: 1 });
+    const metrics = await Metrics.findOne().sort({ timestamp: -1 });
+    
+    // Create PDF document
+    const doc = new PDFDocument({ margin: 50 });
+    
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="Fleet_Report_${new Date().toISOString().split('T')[0]}.pdf"`);
+    
+    // Pipe PDF to response
+    doc.pipe(res);
+    
+    // Title
+    doc.fontSize(20).text('KOCHI METRO RAIL LIMITED', { align: 'center' });
+    doc.fontSize(16).text('Fleet Management Report', { align: 'center' });
+    doc.moveDown();
+    
+    // Report info
+    doc.fontSize(12).text(`Report Generated: ${new Date().toLocaleString()}`, { align: 'center' });
+    doc.moveDown(2);
+    
+    // Fleet Overview
+    doc.fontSize(14).text('FLEET OVERVIEW', { underline: true });
+    doc.moveDown();
+    
+    const statusCounts = trainsets.reduce((acc, train) => {
+      acc[train.status] = (acc[train.status] || 0) + 1;
+      return acc;
+    }, {});
+    
+    doc.fontSize(12).text(`Total Fleet Size: ${trainsets.length}`, { indent: 20 });
+    doc.text(`In Service (Ready): ${statusCounts.ready || 0}`, { indent: 20 });
+    doc.text(`Standby: ${statusCounts.standby || 0}`, { indent: 20 });
+    doc.text(`Maintenance: ${statusCounts.maintenance || 0}`, { indent: 20 });
+    doc.text(`Critical: ${statusCounts.critical || 0}`, { indent: 20 });
+    doc.moveDown();
+    
+    // Performance Metrics
+    if (metrics?.current_kpis) {
+      doc.fontSize(14).text('PERFORMANCE METRICS', { underline: true });
+      doc.moveDown();
+      
+      doc.fontSize(12).text(`Fleet Availability: ${metrics.current_kpis.fleet_availability || 0}%`, { indent: 20 });
+      doc.text(`On-time Performance: ${metrics.current_kpis.on_time_performance || 0}%`, { indent: 20 });
+      doc.text(`Safety Score: ${metrics.current_kpis.safety_score || 0}/100`, { indent: 20 });
+      doc.moveDown();
+    }
+    
+    // Trainset Details
+    doc.fontSize(14).text('TRAINSET DETAILS', { underline: true });
+    doc.moveDown();
+    
+    // Table headers
+    const tableTop = doc.y;
+    const itemHeight = 20;
+    const col1 = 50;
+    const col2 = 150;
+    const col3 = 250;
+    const col4 = 350;
+    const col5 = 450;
+    
+    doc.fontSize(10).text('Number', col1, tableTop);
+    doc.text('Status', col2, tableTop);
+    doc.text('Bay', col3, tableTop);
+    doc.text('Mileage', col4, tableTop);
+    doc.text('Availability', col5, tableTop);
+    
+    // Draw line under headers
+    doc.moveTo(col1, tableTop + 15).lineTo(col5 + 50, tableTop + 15).stroke();
+    
+    let y = tableTop + 20;
+    
+    // Add trainset data (limit to first 20 for PDF readability)
+    trainsets.slice(0, 20).forEach((trainset, index) => {
+      if (y > 700) { // Start new page if needed
+        doc.addPage();
+        y = 50;
+      }
+      
+      doc.text(trainset.number, col1, y);
+      doc.text(trainset.status.toUpperCase(), col2, y);
+      doc.text(trainset.bay_position.toString(), col3, y);
+      doc.text(trainset.mileage.toLocaleString(), col4, y);
+      doc.text(`${trainset.availability_percentage}%`, col5, y);
+      
+      y += itemHeight;
+    });
+    
+    if (trainsets.length > 20) {
+      doc.text(`... and ${trainsets.length - 20} more trainsets`, { indent: 20 });
+    }
+    
+    // Finalize PDF
+    doc.end();
+    
+    console.log('PDF fleet report generated successfully');
+    
+  } catch (error) {
+    console.error('Error generating PDF fleet report:', error);
+    res.status(500).json({
+      message: 'Error generating PDF fleet report',
       error: error.message
     });
   }

@@ -4,8 +4,8 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import Landing from '@/pages/Landing'
 import Index from '@/pages/Index'
+import LandingPage from '@/pages/LandingPage'
 import Login from '@/pages/Login'
 import SignUp from '@/pages/SignUp'
 import AdminPortal from '@/pages/AdminPortal'
@@ -25,6 +25,9 @@ import AISchedulingPage from '@/pages/AISchedulingPage'
 import ORToolsSchedulingPage from '@/pages/ORToolsSchedulingPage'
 import SIHSchedulingPage from '@/pages/SIHSchedulingPage'
 import ReportsPage from '@/pages/ReportsPage'
+import PassengerInfo from '@/pages/PassengerInfo'
+import TicketingRevenue from '@/pages/TicketingRevenue'
+import IncidentResponse from '@/pages/IncidentResponse'
 import NotFound from '@/pages/NotFound'
 import APIDebugger from '@/components/APIDebugger'
 import './App.css'
@@ -33,9 +36,9 @@ function App() {
   return (
     <TooltipProvider>
       <AuthProvider>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="min-h-screen bg-teal-gradient bg-teal-gradient-dark">
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/admin" element={<AdminPortal />} />
@@ -119,6 +122,21 @@ function App() {
             <Route path="/reports" element={
               <ProtectedRoute>
                 <ReportsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/passenger-info" element={
+              <ProtectedRoute>
+                <PassengerInfo />
+              </ProtectedRoute>
+            } />
+            <Route path="/ticketing-revenue" element={
+              <ProtectedRoute>
+                <TicketingRevenue />
+              </ProtectedRoute>
+            } />
+            <Route path="/incident-response" element={
+              <ProtectedRoute>
+                <IncidentResponse />
               </ProtectedRoute>
             } />
             <Route path="/comprehensive-reports" element={

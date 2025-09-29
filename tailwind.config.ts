@@ -1,4 +1,4 @@
-import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -14,6 +14,13 @@ export default {
     },
     extend: {
       colors: {
+        'metro-teal': {
+          DEFAULT: '#14b8a6',
+          dark: '#0e9488',
+          darker: '#0f766e',
+        },
+        'metro-teal-dark': '#0e9488',
+        'metro-teal-darker': '#0f766e',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -67,13 +74,13 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-      },
-      borderRadius: {
+  },
+  borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-      keyframes: {
+  },
+  keyframes: {
         "accordion-down": {
           from: {
             height: "0",
@@ -97,5 +104,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
-} satisfies Config;
+  plugins: [tailwindcssAnimate],
+};

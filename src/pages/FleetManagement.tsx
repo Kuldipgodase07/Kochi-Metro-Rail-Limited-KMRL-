@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import KMRLLogo from '@/components/KMRLLogo';
+import { useTrainsets, useRealtimeMetrics } from '@/hooks/useTrainData';
 import { 
   Train, 
   Wrench, 
@@ -17,8 +18,13 @@ import {
   Search,
   Filter,
   BarChart3,
-  FileText,
-  ArrowLeft
+  ArrowLeft,
+  Download,
+  RefreshCw,
+  Activity,
+  Clock,
+  Shield,
+  Zap
 } from 'lucide-react';
 
 interface Trainset {
@@ -38,20 +44,55 @@ interface Trainset {
 }
 
 const FleetManagement: React.FC = () => {
-  const [trainsets, setTrainsets] = useState<Trainset[]>([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    fetch('/api/data/trainsets')
-      .then(res => res.json())
-      .then(data => {
-        setTrainsets(data);
-        setLoading(false);
-      });
-  }, []);
+  const { data: trainsets, isLoading: loading, refetch, error } = useTrainsets();
+  const { data: metrics } = useRealtimeMetrics();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedTrainset, setSelectedTrainset] = useState<Trainset | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [showTrainsetModal, setShowTrainsetModal] = useState(false);
+  const [selectedTrainsetForModal, setSelectedTrainsetForModal] = useState<any>(null);
   const { toast } = useToast();
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-teal-gradient bg-teal-gradient-dark flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading Fleet Management...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-teal-gradient bg-teal-gradient-dark flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">
+            <AlertTriangle className="h-12 w-12 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error Loading Fleet Data</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">Unable to connect to the backend service.</p>
+          <div className="space-y-2">
+            <Button onClick={() => refetch()} className="bg-teal-600 hover:bg-teal-700 text-white mr-2">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Retry
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.reload()} 
+              className="border-teal-300 text-teal-700 hover:bg-teal-50 dark:border-teal-600 dark:text-teal-300 dark:hover:bg-teal-900/30"
+            >
+              Reload Page
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const raiseTestIncident = async () => {
     try {
@@ -77,48 +118,120 @@ const FleetManagement: React.FC = () => {
     }
   }
 
+  const generateReport = async () => {
+    setIsGeneratingReport(true);
+    try {
+      const token = localStorage.getItem('train_plan_wise_token');
+      const res = await fetch('http://localhost:5000/api/reports/fleet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          type: 'fleet_summary',
+          includeMetrics: true,
+          includeTrainsets: true,
+          format: 'pdf'
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to generate report');
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fleet-report-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: 'Report Generated',
+        description: 'Fleet management report has been downloaded successfully.'
+      });
+    } catch (e) {
+      toast({
+        title: 'Failed to generate report',
+        description: e instanceof Error ? e.message : 'Unknown error',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  }
+
+  const handleViewDetails = (trainset: any) => {
+    setSelectedTrainsetForModal(trainset);
+    setShowTrainsetModal(true);
+  }
+
+  const handleQuickActions = (trainset: any) => {
+    toast({
+      title: 'Quick Actions',
+      description: `Quick actions for trainset ${trainset.number} - Feature coming soon!`,
+    });
+  }
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      service: { color: 'bg-green-500', text: 'In Service' },
-      standby: { color: 'bg-blue-500', text: 'Standby' },
-      maintenance: { color: 'bg-yellow-500', text: 'Maintenance' },
-      IBL: { color: 'bg-red-500', text: 'IBL' }
+      service: { color: 'bg-green-500 dark:bg-green-600', text: 'In Service' },
+      standby: { color: 'bg-yellow-500 dark:bg-yellow-600', text: 'Standby' },
+      maintenance: { color: 'bg-red-500 dark:bg-red-600', text: 'Maintenance' },
+      IBL: { color: 'bg-red-500 dark:bg-red-600', text: 'IBL' },
+      ready: { color: 'bg-green-500 dark:bg-green-600', text: 'In Service' },
+      critical: { color: 'bg-red-500 dark:bg-red-600', text: 'Critical' },
+      // Add more status mappings to ensure we catch all cases
+      'in-service': { color: 'bg-green-500 dark:bg-green-600', text: 'In Service' },
+      'in service': { color: 'bg-green-500 dark:bg-green-600', text: 'In Service' },
+      'active': { color: 'bg-green-500 dark:bg-green-600', text: 'In Service' },
+      'operational': { color: 'bg-green-500 dark:bg-green-600', text: 'In Service' }
     };
-    const config = statusConfig[status as keyof typeof statusConfig];
-    return <Badge className={`${config.color} text-white`}>{config.text}</Badge>;
+    
+    // Normalize the status to lowercase for better matching
+    const normalizedStatus = status?.toLowerCase() || '';
+    const config = statusConfig[normalizedStatus as keyof typeof statusConfig] || 
+                   statusConfig[status as keyof typeof statusConfig] || { 
+      color: 'bg-gray-500 dark:bg-gray-600', 
+      text: status || 'Unknown' 
+    };
+    return <Badge className={`${config.color} text-white font-medium px-2 py-1`}>{config.text}</Badge>;
   };
 
-  const getCleaningBadge = (status: string) => {
-    const statusConfig = {
-      clean: { color: 'bg-green-500', text: 'Clean' },
-      due: { color: 'bg-yellow-500', text: 'Due' },
-      overdue: { color: 'bg-red-500', text: 'Overdue' }
-    };
-    const config = statusConfig[status as keyof typeof statusConfig];
-    return <Badge className={`${config.color} text-white`}>{config.text}</Badge>;
-  };
 
-  const filteredTrainsets = trainsets.filter(trainset => {
+  const filteredTrainsets = (trainsets || []).filter(trainset => {
     const matchesSearch = trainset.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trainset.location.toLowerCase().includes(searchTerm.toLowerCase());
+                         (trainset.bay_position?.toString() || '').includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || trainset.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const fleetSummary = {
-    total: trainsets.length,
-    inService: trainsets.filter(t => t.status === 'service').length,
-    standby: trainsets.filter(t => t.status === 'standby').length,
-    maintenance: trainsets.filter(t => t.status === 'maintenance').length,
-    IBL: trainsets.filter(t => t.status === 'IBL').length,
-    averageAvailability: Math.round(trainsets.reduce((acc, t) => acc + t.availability, 0) / trainsets.length),
-    totalJobCards: trainsets.reduce((acc, t) => acc + t.openJobCards, 0)
+    total: trainsets?.length || 0,
+    inService: trainsets?.filter(t => t.status === 'ready').length || 0,
+    standby: trainsets?.filter(t => t.status === 'standby').length || 0,
+    maintenance: trainsets?.filter(t => t.status === 'maintenance').length || 0,
+    IBL: trainsets?.filter(t => t.status === 'critical').length || 0,
+    averageAvailability: trainsets?.length > 0 ? Math.round(trainsets.reduce((acc, t) => acc + (t.availability_percentage || 0), 0) / trainsets.length) : 0,
+    totalJobCards: 0 // This field doesn't exist in the current data structure
+  };
+
+  // Use metrics data if available
+  const displayMetrics = metrics?.fleet_status || {
+    total_fleet: fleetSummary.total,
+    ready: fleetSummary.inService,
+    standby: fleetSummary.standby,
+    maintenance: fleetSummary.maintenance,
+    critical: fleetSummary.IBL,
+    avg_availability: fleetSummary.averageAvailability
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-slate-900">
+    <div className="min-h-screen bg-teal-gradient bg-teal-gradient-dark">
       {/* Header */}
-      <header className="bg-white/90 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 shadow-sm">
+      <header className="bg-white/90 dark:bg-teal-900/95 backdrop-blur-md border-b border-teal-200 dark:border-teal-800 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
@@ -148,78 +261,98 @@ const FleetManagement: React.FC = () => {
               <p className="text-gray-600">Comprehensive trainset tracking and status management</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={raiseTestIncident}>
+              <Button variant="outline" onClick={raiseTestIncident} className="border-teal-300 text-teal-700 hover:bg-teal-50 dark:border-teal-600 dark:text-teal-300 dark:hover:bg-teal-900/30">
                 <AlertTriangle className="w-4 h-4 mr-2" />
                 Raise Test Incident
               </Button>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <FileText className="w-4 w-4 mr-2" />
-                Generate Report
+              <Button 
+                onClick={generateReport}
+                disabled={isGeneratingReport}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                {isGeneratingReport ? (
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                {isGeneratingReport ? 'Generating...' : 'Generate Report'}
               </Button>
             </div>
           </div>
 
           {/* Fleet Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
+            <Card className="dark-card">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Trainsets</p>
-                    <p className="text-2xl font-bold text-gray-900">{fleetSummary.total}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Trainsets</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{displayMetrics.total_fleet}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Active Fleet</p>
                   </div>
-                  <Train className="w-8 h-8 text-blue-600" />
+                  <div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
+                    <Train className="w-8 h-8 text-teal-600 dark:text-teal-400" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4">
+            <Card className="dark-card">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">In Service</p>
-                    <p className="text-2xl font-bold text-green-600">{fleetSummary.inService}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">In Service</p>
+                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">{displayMetrics.ready}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Operational</p>
                   </div>
-                  <CheckCircle className="w-8 h-8 text-green-600" />
+                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4">
+            <Card className="dark-card">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Under Maintenance</p>
-                    <p className="text-2xl font-bold text-yellow-600">{fleetSummary.maintenance + fleetSummary.IBL}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Under Maintenance</p>
+                    <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{displayMetrics.maintenance + displayMetrics.critical}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Service Required</p>
                   </div>
-                  <Wrench className="w-8 h-8 text-yellow-600" />
+                  <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                    <Wrench className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4">
+            <Card className="dark-card">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Avg Availability</p>
-                    <p className="text-2xl font-bold text-blue-600">{fleetSummary.averageAvailability}%</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Avg Availability</p>
+                    <p className="text-3xl font-bold text-teal-600 dark:text-teal-400">{displayMetrics.avg_availability}%</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fleet Performance</p>
                   </div>
-                  <BarChart3 className="w-8 h-8 text-blue-600" />
+                  <div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
+                    <BarChart3 className="w-8 h-8 text-teal-600 dark:text-teal-400" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Filters and Search */}
-          <Card>
-            <CardContent className="p-4">
+          <Card className="dark-card">
+            <CardContent className="p-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-teal-500" />
                     <Input
                       placeholder="Search by trainset number or location..."
-                      className="pl-10"
+                      className="pl-10 dark-input border-teal-200 focus:border-teal-500 focus:ring-teal-500/20"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -227,7 +360,7 @@ const FleetManagement: React.FC = () => {
                 </div>
                 <div className="flex gap-2">
                   <select
-                    className="px-3 py-2 border border-gray-300 rounded-md"
+                    className="px-3 py-2 border border-teal-200 dark:border-teal-600 rounded-md bg-white dark:bg-teal-900 text-gray-900 dark:text-white focus:border-teal-500 focus:ring-teal-500/20"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                   >
@@ -237,7 +370,7 @@ const FleetManagement: React.FC = () => {
                     <option value="maintenance">Maintenance</option>
                     <option value="IBL">IBL</option>
                   </select>
-                  <Button variant="outline">
+                  <Button variant="outline" className="border-teal-300 text-teal-700 hover:bg-teal-50 dark:border-teal-600 dark:text-teal-300 dark:hover:bg-teal-900/30">
                     <Filter className="w-4 h-4 mr-2" />
                     More Filters
                   </Button>
@@ -248,60 +381,166 @@ const FleetManagement: React.FC = () => {
 
           {/* Trainset List */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredTrainsets.map((trainset) => (
-              <Card key={trainset.id} className="hover:shadow-lg transition-shadow cursor-pointer" 
-                    onClick={() => setSelectedTrainset(trainset)}>
+            {filteredTrainsets.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <div className="text-gray-500 dark:text-gray-400 mb-4">
+                  <Train className="h-12 w-12 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Trainsets Found</h3>
+                  <p className="text-sm">
+                    {searchTerm || statusFilter !== 'all' 
+                      ? 'Try adjusting your search or filter criteria.' 
+                      : 'No trainsets are currently available.'}
+                  </p>
+                </div>
+                {(searchTerm || statusFilter !== 'all') && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSearchTerm('');
+                      setStatusFilter('all');
+                    }}
+                    className="border-teal-300 text-teal-700 hover:bg-teal-50 dark:border-teal-600 dark:text-teal-300 dark:hover:bg-teal-900/30"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            ) : (
+              filteredTrainsets.map((trainset) => (
+              <Card key={trainset.id} className="dark-card hover:shadow-xl transition-all duration-300 cursor-pointer group hover:scale-105" 
+                    onClick={() => setSelectedTrainset(trainset as any)}>
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg">{trainset.number}</CardTitle>
+                    <CardTitle className="text-lg text-gray-900 dark:text-white">{trainset.number}</CardTitle>
                     {getStatusBadge(trainset.status)}
                   </div>
-                  <p className="text-sm text-gray-600">{trainset.location}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1">
+                    <Activity className="w-3 h-3 text-teal-500" />
+                    Bay Position: {trainset.bay_position}
+                  </p>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Availability</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Availability</span>
                     <div className="flex items-center gap-2">
-                      <Progress value={trainset.availability} className="w-20 h-2" />
-                      <span className="text-sm font-medium">{trainset.availability}%</span>
+                      <Progress value={trainset.availability_percentage || 0} className="w-20 h-2" />
+                      <span className="text-sm font-medium text-teal-600 dark:text-teal-400">{trainset.availability_percentage || 0}%</span>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-gray-600">Mileage</p>
-                      <p className="font-medium">{trainset.mileage.toLocaleString()} km</p>
+                    <div className="bg-teal-50 dark:bg-teal-900/20 p-3 rounded-lg">
+                      <p className="text-gray-600 dark:text-gray-300 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Mileage
+                      </p>
+                      <p className="font-medium text-gray-900 dark:text-white">{(trainset.mileage || 0).toLocaleString()} km</p>
                     </div>
-                    <div>
-                      <p className="text-gray-600">Priority</p>
-                      <p className="font-medium">{trainset.priority}/10</p>
+                    <div className="bg-teal-50 dark:bg-teal-900/20 p-3 rounded-lg">
+                      <p className="text-gray-600 dark:text-gray-300 flex items-center gap-1">
+                        <Zap className="w-3 h-3" />
+                        Priority
+                      </p>
+                      <p className="font-medium text-gray-900 dark:text-white">{trainset.branding_priority || 0}/10</p>
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Cleaning</span>
-                    {getCleaningBadge(trainset.cleaningStatus)}
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Last Cleaning</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{trainset.last_cleaning || 'N/A'}</span>
                   </div>
 
-                  {trainset.openJobCards > 0 && (
-                    <div className="flex items-center gap-2 text-orange-600">
+                  {trainset.status === 'critical' && (
+                    <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 p-2 rounded-lg">
                       <AlertTriangle className="w-4 h-4" />
-                      <span className="text-sm">{trainset.openJobCards} open job cards</span>
+                      <span className="text-sm">Critical status - requires attention</span>
                     </div>
                   )}
 
                   <div className="flex gap-2 pt-2">
-                    <Button size="sm" variant="outline" className="flex-1">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="flex-1 border-teal-300 text-teal-700 hover:bg-teal-50 dark:border-teal-600 dark:text-teal-300 dark:hover:bg-teal-900/30"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewDetails(trainset);
+                      }}
+                    >
+                      <Shield className="w-3 h-3 mr-1" />
                       View Details
                     </Button>
-                    <Button size="sm" className="flex-1">
+                    <Button 
+                      size="sm" 
+                      className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQuickActions(trainset);
+                      }}
+                    >
+                      <Activity className="w-3 h-3 mr-1" />
                       Quick Actions
                     </Button>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              ))
+            )}
           </div>
+
+          {/* Trainset Details Modal */}
+          {showTrainsetModal && selectedTrainsetForModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-xl">Trainset {selectedTrainsetForModal.number} Details</CardTitle>
+                    <Button variant="ghost" onClick={() => setShowTrainsetModal(false)}>
+                      <XCircle className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-gray-900 dark:text-white">Basic Information</h4>
+                      <div className="space-y-1">
+                        <p className="text-sm"><span className="font-medium">Number:</span> {selectedTrainsetForModal.number}</p>
+                        <p className="text-sm"><span className="font-medium">Status:</span> {getStatusBadge(selectedTrainsetForModal.status)}</p>
+                        <p className="text-sm"><span className="font-medium">Bay Position:</span> {selectedTrainsetForModal.bay_position}</p>
+                        <p className="text-sm"><span className="font-medium">Mileage:</span> {(selectedTrainsetForModal.mileage || 0).toLocaleString()} km</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-gray-900 dark:text-white">Performance</h4>
+                      <div className="space-y-1">
+                        <p className="text-sm"><span className="font-medium">Availability:</span> {selectedTrainsetForModal.availability_percentage || 0}%</p>
+                        <p className="text-sm"><span className="font-medium">Branding Priority:</span> {selectedTrainsetForModal.branding_priority || 0}/10</p>
+                        <p className="text-sm"><span className="font-medium">Last Cleaning:</span> {selectedTrainsetForModal.last_cleaning || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => handleQuickActions(selectedTrainsetForModal)}
+                        className="bg-teal-600 hover:bg-teal-700 text-white"
+                      >
+                        <Activity className="w-4 h-4 mr-2" />
+                        Quick Actions
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowTrainsetModal(false)}
+                      >
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Selected Trainset Detail Modal */}
           {selectedTrainset && (

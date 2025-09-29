@@ -16,14 +16,14 @@ import {
   ChevronRight,
   Circle,
   Eye,
-  Shield
+  Shield,
+  Users,
+  CreditCard,
+  AlertTriangle
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-interface FuturisticNavigationProps {
-  activeTab: string
-  onTabChange: (tab: string) => void
-}
+interface FuturisticNavigationProps {}
 
 const moduleData = [
   {
@@ -175,10 +175,40 @@ const moduleData = [
     ring: 'ring-blue-200',
     glow: 'from-blue-200/50 to-blue-300/30',
     description: 'Advanced analytics and executive dashboards'
+  },
+  {
+    id: 'passenger-info',
+    key: 'modules.passengerInfo',
+    icon: Users,
+    iconBg: 'bg-green-50',
+    iconText: 'text-green-600',
+    ring: 'ring-green-200',
+    glow: 'from-green-200/50 to-green-300/30',
+    description: 'Passenger Information System'
+  },
+  {
+    id: 'ticketing-revenue',
+    key: 'modules.ticketingRevenue',
+    icon: CreditCard,
+    iconBg: 'bg-orange-50',
+    iconText: 'text-orange-600',
+    ring: 'ring-orange-200',
+    glow: 'from-orange-200/50 to-orange-300/30',
+    description: 'Ticketing & Revenue Management'
+  },
+  {
+    id: 'incident-response',
+    key: 'modules.incidentResponse',
+    icon: AlertTriangle,
+    iconBg: 'bg-red-50',
+    iconText: 'text-red-600',
+    ring: 'ring-red-200',
+    glow: 'from-red-200/50 to-red-300/30',
+    description: 'Incident & Emergency Response'
   }
 ]
 
-export function FuturisticNavigation({ activeTab, onTabChange }: FuturisticNavigationProps) {
+export function FuturisticNavigation({}: FuturisticNavigationProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [hoveredModule, setHoveredModule] = useState<string | null>(null)
@@ -198,16 +228,16 @@ export function FuturisticNavigation({ activeTab, onTabChange }: FuturisticNavig
     'sih': '/sih-scheduling',
     'train-scheduling': '/train-scheduling',
     'reports': '/reports',
-    'comprehensive': '/comprehensive-reports'
+    'comprehensive': '/comprehensive-reports',
+    'passenger-info': '/passenger-info',
+    'ticketing-revenue': '/ticketing-revenue',
+    'incident-response': '/incident-response'
   }
 
   const handleModuleClick = (moduleId: string) => {
     const route = moduleRoutes[moduleId]
     if (route) {
       navigate(route)
-    } else {
-      // Fallback to tab change for modules without individual pages
-      onTabChange(moduleId)
     }
   }
 
@@ -232,7 +262,6 @@ export function FuturisticNavigation({ activeTab, onTabChange }: FuturisticNavig
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {moduleData.map((module) => {
             const Icon = module.icon
-            const isActive = activeTab === module.id
             const isHovered = hoveredModule === module.id
 
             return (
@@ -244,29 +273,11 @@ export function FuturisticNavigation({ activeTab, onTabChange }: FuturisticNavig
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {/* Active soft glow */}
-                <AnimatePresence>
-                  {isActive && (
-                    <motion.div
-                      className="absolute -inset-1 rounded-xl bg-gradient-to-br from-blue-400/15 to-cyan-400/10 blur"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  )}
-                </AnimatePresence>
 
                 {/* Module card */}
                 <motion.button
                   onClick={() => handleModuleClick(module.id)}
-                  className={`
-                    relative w-full p-4 rounded-xl border transition-all duration-300 group
-                    ${isActive
-                      ? 'bg-white border-blue-300 shadow-md ring-1 ring-blue-200 dark:bg-slate-900 dark:border-blue-300/40'
-                      : 'bg-white border-slate-200 hover:border-blue-200 hover:shadow-md dark:bg-slate-900/60 dark:border-slate-800'
-                    }
-                  `}
+                  className="relative w-full p-4 rounded-xl border transition-all duration-300 group bg-white border-slate-200 hover:border-blue-200 hover:shadow-md dark:bg-slate-900/60 dark:border-slate-800"
                   layout
                 >
                   {/* Icon container */}
@@ -275,45 +286,27 @@ export function FuturisticNavigation({ activeTab, onTabChange }: FuturisticNavig
                     {/* Subtle animated glow behind icon */}
                     <motion.div
                       className={`pointer-events-none absolute -inset-2 rounded-2xl bg-gradient-to-br ${module.glow} opacity-0`}
-                      animate={{ opacity: isActive ? 0.6 : isHovered ? 0.35 : 0, scale: isActive ? 1.05 : 1 }}
+                      animate={{ opacity: isHovered ? 0.35 : 0, scale: 1 }}
                       transition={{ duration: 0.3 }}
                     />
                   </div>
 
                   {/* Module name */}
-                  <h3 className={`
-                    text-sm font-semibold mb-1 transition-colors duration-300
-                    ${isActive
-                      ? 'text-slate-900 dark:text-white'
-                      : 'text-slate-700 group-hover:text-slate-900 dark:text-slate-200'
-                    }
-                  `}>
+                  <h3 className="text-sm font-semibold mb-1 transition-colors duration-300 text-slate-700 group-hover:text-slate-900 dark:text-slate-200">
                     {t(module.key)}
                   </h3>
 
                   {/* Status indicator */}
                   <div className="flex items-center justify-center space-x-1">
-                    <Circle className={`
-                      w-2 h-2 transition-colors duration-300
-                      ${isActive
-                        ? 'text-green-500 fill-current'
-                        : 'text-slate-400 group-hover:text-slate-500'
-                      }
-                    `} />
-                    <span className={`
-                      text-xs transition-colors duration-300
-                      ${isActive
-                        ? 'text-green-600'
-                        : 'text-slate-500 group-hover:text-slate-600'
-                      }
-                    `}>
-                      {isActive ? 'Active' : 'Ready'}
+                    <Circle className="w-2 h-2 transition-colors duration-300 text-slate-400 group-hover:text-slate-500" />
+                    <span className="text-xs transition-colors duration-300 text-slate-500 group-hover:text-slate-600">
+                      Ready
                     </span>
                   </div>
 
                   {/* Hover arrow */}
                   <AnimatePresence>
-                    {isHovered && !isActive && (
+                    {isHovered && (
                       <motion.div
                         className="absolute top-2 right-2"
                         initial={{ opacity: 0, x: -10 }}
@@ -351,35 +344,6 @@ export function FuturisticNavigation({ activeTab, onTabChange }: FuturisticNavig
           })}
           </div>
 
-          {/* Active module info */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              className="mt-6 p-4 rounded-xl border border-slate-200 bg-gradient-to-r from-white to-slate-50 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-800"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {(() => {
-                const activeModule = moduleData.find(m => m.id === activeTab)
-                if (!activeModule) return null
-
-                const ActiveIcon = activeModule.icon
-                return (
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${activeModule.iconBg} ring-1 ${activeModule.ring}`}>
-                      <ActiveIcon className={`w-5 h-5 ${activeModule.iconText}`} />
-                    </div>
-                    <div>
-                      <h4 className="text-slate-900 font-semibold dark:text-white">{t(activeModule.key)}</h4>
-                      <p className="text-slate-500 text-sm dark:text-slate-400">{activeModule.description}</p>
-                    </div>
-                  </div>
-                )
-              })()}
-            </motion.div>
-          </AnimatePresence>
         </div>
       </div>
     </div>
