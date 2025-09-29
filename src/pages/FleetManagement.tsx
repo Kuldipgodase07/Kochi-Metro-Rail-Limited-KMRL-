@@ -60,7 +60,7 @@ const FleetManagement: React.FC = () => {
       <div className="min-h-screen bg-teal-gradient bg-teal-gradient-dark flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Loading Fleet Management...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading Fleet Overview...</p>
         </div>
       </div>
     );
@@ -237,7 +237,7 @@ const FleetManagement: React.FC = () => {
             <div className="flex items-center space-x-3">
               <KMRLLogo height={28} />
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Fleet Management</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Fleet Overview</h1>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Real-time fleet monitoring and analytics</p>
               </div>
             </div>
@@ -257,7 +257,7 @@ const FleetManagement: React.FC = () => {
           {/* Page Header */}
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">Fleet Management</h2>
+              <h2 className="text-3xl font-bold text-gray-900">Fleet Overview</h2>
               <p className="text-gray-600">Comprehensive trainset tracking and status management</p>
             </div>
             <div className="flex gap-2">

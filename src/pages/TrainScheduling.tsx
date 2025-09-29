@@ -43,7 +43,7 @@ const TrainScheduling: React.FC = () => {
             <div className="flex items-center space-x-3">
               <KMRLLogo height={28} />
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Google OR-Tools Train Scheduling</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Train Scheduling</h1>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Advanced optimization for 24 train fleet</p>
               </div>
             </div>

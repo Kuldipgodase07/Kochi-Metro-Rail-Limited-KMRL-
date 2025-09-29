@@ -131,10 +131,14 @@ const mockCertificates: Certificate[] = [
 ];
 
 const CertificateManagement: React.FC = () => {
-  const [certificates] = useState<Certificate[]>(mockCertificates);
+  const [certificates, setCertificates] = useState<Certificate[]>(mockCertificates);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [manageType, setManageType] = useState<'renew' | 'update' | 'suspend' | 'reactivate'>('renew');
+  const [manageNotes, setManageNotes] = useState<string>('');
+  const [newExpiryDate, setNewExpiryDate] = useState<string>('');
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -183,6 +187,67 @@ const CertificateManagement: React.FC = () => {
     const diffTime = expiry.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+
+  const handleManageCertificate = (certificate: Certificate) => {
+    setSelectedCertificate(certificate);
+    setManageType('renew');
+    setManageNotes('');
+    setNewExpiryDate(certificate.expiryDate);
+    setShowManageModal(true);
+  };
+
+  const handleManageAction = () => {
+    if (!selectedCertificate) return;
+
+    let updatedCertificate = { ...selectedCertificate };
+
+    switch (manageType) {
+      case 'renew':
+        updatedCertificate = {
+          ...updatedCertificate,
+          status: 'valid',
+          expiryDate: newExpiryDate,
+          issueDate: new Date().toISOString().split('T')[0],
+          remarks: manageNotes || updatedCertificate.remarks
+        };
+        break;
+      case 'update':
+        updatedCertificate = {
+          ...updatedCertificate,
+          expiryDate: newExpiryDate,
+          remarks: manageNotes || updatedCertificate.remarks
+        };
+        break;
+      case 'suspend':
+        updatedCertificate = {
+          ...updatedCertificate,
+          status: 'suspended',
+          remarks: manageNotes || updatedCertificate.remarks
+        };
+        break;
+      case 'reactivate':
+        updatedCertificate = {
+          ...updatedCertificate,
+          status: 'valid',
+          remarks: manageNotes || updatedCertificate.remarks
+        };
+        break;
+    }
+
+    // Update the certificate in the list
+    setCertificates(prevCerts => 
+      prevCerts.map(cert => 
+        cert.id === selectedCertificate.id ? updatedCertificate : cert
+      )
+    );
+
+    // Close modal and reset state
+    setShowManageModal(false);
+    setSelectedCertificate(null);
+    setManageType('renew');
+    setManageNotes('');
+    setNewExpiryDate('');
   };
 
   const filteredCertificates = certificates.filter(cert => {
@@ -427,7 +492,7 @@ const CertificateManagement: React.FC = () => {
                     <Eye className="w-3 h-3 mr-1" />
                     View
                   </Button>
-                  <Button size="sm" className="flex-1">
+                  <Button size="sm" className="flex-1" onClick={() => handleManageCertificate(certificate)}>
                     <Edit className="w-3 h-3 mr-1" />
                     Manage
                   </Button>
@@ -658,6 +723,93 @@ const CertificateManagement: React.FC = () => {
                   </div>
                 </TabsContent>
               </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Certificate Management Modal */}
+      {showManageModal && selectedCertificate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-lg mx-4">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Manage Certificate</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowManageModal(false)}
+                >
+                  ×
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Certificate: {selectedCertificate.name}</label>
+                <label className="block text-sm font-medium mb-2">Train: {selectedCertificate.trainset}</label>
+                <label className="block text-sm font-medium mb-2">Certificate Number: {selectedCertificate.certificateNumber}</label>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Current Status</label>
+                <div className="p-2 bg-gray-100 rounded">
+                  {getStatusBadge(selectedCertificate.status)}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Management Action</label>
+                <select 
+                  value={manageType} 
+                  onChange={(e) => setManageType(e.target.value as any)}
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="renew">Renew Certificate</option>
+                  <option value="update">Update Details</option>
+                  <option value="suspend">Suspend Certificate</option>
+                  <option value="reactivate">Reactivate Certificate</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">New Expiry Date</label>
+                <input 
+                  type="date" 
+                  value={newExpiryDate}
+                  onChange={(e) => setNewExpiryDate(e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Management Notes</label>
+                <textarea 
+                  value={manageNotes}
+                  onChange={(e) => setManageNotes(e.target.value)}
+                  className="w-full p-2 border rounded-md h-20"
+                  placeholder="Add notes about the management action..."
+                />
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  variant="outline" 
+                  className="flex-1" 
+                  onClick={() => setShowManageModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1" 
+                  onClick={handleManageAction}
+                >
+                  {manageType === 'renew' ? 'Renew Certificate' : 
+                   manageType === 'update' ? 'Update Certificate' :
+                   manageType === 'suspend' ? 'Suspend Certificate' : 
+                   'Reactivate Certificate'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

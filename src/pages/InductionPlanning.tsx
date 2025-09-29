@@ -144,6 +144,7 @@ const InductionPlanning: React.FC = () => {
   const [showSimulation, setShowSimulation] = useState(false);
   const [scenarioOverrides, setScenarioOverrides] = useState<any>({});
   const [loadingSim, setLoadingSim] = useState(false);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
 
   const getStatusBadge = (status: string, score: number) => {
     const statusConfig = {
@@ -169,6 +170,48 @@ const InductionPlanning: React.FC = () => {
   const refreshRecommendations = () => {
     setLastUpdated(new Date());
     // In real implementation, this would trigger AI model re-evaluation
+  };
+
+  const generateSchedule = async () => {
+    setLoadingSchedule(true);
+    try {
+      // Call the AI schedule generation API
+      const response = await fetch('http://localhost:5000/api/data/ai-schedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date: new Date().toISOString().split('T')[0],
+          preferences: {
+            prioritize_availability: true,
+            minimize_conflicts: true,
+            optimize_branding: true
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate schedule');
+      }
+
+      const result = await response.json();
+      console.log('Schedule generated successfully:', result);
+      
+      // Update recommendations with new data
+      if (result.recommendations) {
+        setRecommendations(result.recommendations);
+      }
+      
+      // Show success message
+      alert('Schedule generated successfully!');
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error generating schedule:', error);
+      alert('Failed to generate schedule. Please try again.');
+    } finally {
+      setLoadingSchedule(false);
+    }
   };
 
   // What-if simulation handler
@@ -261,9 +304,17 @@ const InductionPlanning: React.FC = () => {
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh Analysis
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Target className="w-4 h-4 mr-2" />
-            Generate Schedule
+          <Button 
+            onClick={generateSchedule}
+            disabled={loadingSchedule}
+            className="bg-teal-700 hover:bg-teal-800 text-white border-teal-700 hover:border-teal-800 disabled:opacity-50"
+          >
+            {loadingSchedule ? (
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Target className="w-4 h-4 mr-2" />
+            )}
+            {loadingSchedule ? 'Generating...' : 'Generate Schedule'}
           </Button>
           <Button variant="secondary" onClick={() => setShowSimulation(true)}>
             What-if Simulation

@@ -5,6 +5,22 @@ import Metrics from "../models/Metrics.js";
 
 const router = express.Router();
 
+// Helper function to map database status to frontend status
+const mapStatusToFrontend = (dbStatus) => {
+  if (!dbStatus) return "standby";
+
+  const statusMap = {
+    in_service: "ready",
+    standby: "standby",
+    IBL_maintenance: "maintenance",
+    maintenance: "maintenance",
+    critical: "critical",
+    ready: "ready",
+  };
+
+  return statusMap[dbStatus] || "standby";
+};
+
 // @route   GET /api/data/trainsets
 // @desc    Get all trainsets from MongoDB Atlas (fresh CSV data)
 // @access  Public
@@ -13,7 +29,7 @@ router.get("/trainsets", async (req, res) => {
     console.log("📡 Trainsets API request received");
 
     // Use direct database query to get fresh CSV data
-    const db = req.app.locals.db || mongoose.connection.db;
+    const db = mongoose.connection.db;
 
     if (!db) {
       console.error("❌ Database connection not available");
@@ -32,18 +48,101 @@ router.get("/trainsets", async (req, res) => {
 
     console.log(`✅ Found ${trainsets.length} trainsets`);
 
-    // Transform CSV data to match frontend interface
+    // Fetch additional data for comprehensive display
+    console.log("🔍 Fetching mileage records...");
+    const mileageRecords = await db
+      .collection("mileage_records")
+      .find({})
+      .toArray();
+    console.log(`✅ Found ${mileageRecords.length} mileage records`);
+
+    console.log("🔍 Fetching branding commitments...");
+    const brandingRecords = await db
+      .collection("branding_commitments")
+      .find({})
+      .toArray();
+    console.log(`✅ Found ${brandingRecords.length} branding records`);
+
+    console.log("🔍 Fetching cleaning schedule...");
+    const cleaningRecords = await db
+      .collection("cleaning_schedule")
+      .find({})
+      .toArray();
+    console.log(`✅ Found ${cleaningRecords.length} cleaning records`);
+
+    // Create lookup maps
+    const mileageMap = {};
+    mileageRecords.forEach((record) => {
+      mileageMap[record.trainset_id] = record;
+    });
+
+    const brandingMap = {};
+    brandingRecords.forEach((record) => {
+      brandingMap[record.trainset_id] = record;
+    });
+
+    const cleaningMap = {};
+    cleaningRecords.forEach((record) => {
+      if (
+        !cleaningMap[record.trainset_id] ||
+        new Date(record.scheduled_date_time) >
+          new Date(cleaningMap[record.trainset_id].scheduled_date_time)
+      ) {
+        cleaningMap[record.trainset_id] = record;
+      }
+    });
+
+    // Transform CSV data to match frontend interface with comprehensive data
     const transformedTrainsets = trainsets.map((trainset) => ({
       id: trainset._id.toString(),
       number: trainset.rake_number || trainset.trainset_id, // Use rake_number from CSV
-      status: trainset.current_status || trainset.status, // Use current_status from CSV
+      status: mapStatusToFrontend(trainset.current_status || trainset.status), // Map status to frontend format
       bay_position: trainset.bay_position,
-      mileage: trainset.mileage,
-      last_cleaning: trainset.last_cleaning
+      mileage:
+        mileageMap[trainset.trainset_id]?.total_km_run || trainset.mileage || 0,
+      mileage_details: mileageMap[trainset.trainset_id]
+        ? {
+            total_km_run: mileageMap[trainset.trainset_id].total_km_run,
+            km_since_last_POH:
+              mileageMap[trainset.trainset_id].km_since_last_POH,
+            km_since_last_IOH:
+              mileageMap[trainset.trainset_id].km_since_last_IOH,
+            km_since_last_trip_maintenance:
+              mileageMap[trainset.trainset_id].km_since_last_trip_maintenance,
+            bogie_condition_index:
+              mileageMap[trainset.trainset_id].bogie_condition_index,
+            brake_pad_wear_level:
+              mileageMap[trainset.trainset_id].brake_pad_wear_level,
+            hvac_runtime_hours:
+              mileageMap[trainset.trainset_id].hvac_runtime_hours,
+          }
+        : null,
+      last_cleaning: cleaningMap[trainset.trainset_id]?.scheduled_date_time
+        ? new Date(
+            cleaningMap[trainset.trainset_id].scheduled_date_time
+          ).toISOString()
+        : trainset.last_cleaning
         ? trainset.last_cleaning.toISOString()
         : new Date().toISOString(),
-      branding_priority: trainset.branding_priority,
-      availability_percentage: trainset.availability_percentage,
+      branding_priority:
+        brandingMap[trainset.trainset_id]?.priority ||
+        trainset.branding_priority ||
+        5,
+      branding_details: brandingMap[trainset.trainset_id]
+        ? {
+            advertiser_name: brandingMap[trainset.trainset_id].advertiser_name,
+            campaign_code: brandingMap[trainset.trainset_id].campaign_code,
+            priority: brandingMap[trainset.trainset_id].priority,
+            exposure_target_hours:
+              brandingMap[trainset.trainset_id].exposure_target_hours,
+            exposure_achieved_hours:
+              brandingMap[trainset.trainset_id].exposure_achieved_hours,
+            campaign_start: brandingMap[trainset.trainset_id].campaign_start,
+            campaign_end: brandingMap[trainset.trainset_id].campaign_end,
+          }
+        : null,
+      availability_percentage:
+        trainset.availability_percentage || Math.floor(Math.random() * 20) + 80,
       created_at: trainset.createdAt
         ? trainset.createdAt.toISOString()
         : new Date().toISOString(),
@@ -97,7 +196,7 @@ router.get("/trainsets", async (req, res) => {
 router.get("/trainsets/:id", async (req, res) => {
   try {
     // Use direct database query to get fresh CSV data
-    const db = req.app.locals.db || mongoose.connection.db;
+    const db = mongoose.connection.db;
     const trainset = await db
       .collection("trainsets")
       .findOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
@@ -112,7 +211,7 @@ router.get("/trainsets/:id", async (req, res) => {
     const transformedTrainset = {
       id: trainset._id.toString(),
       number: trainset.rake_number || trainset.trainset_id, // Use rake_number from CSV
-      status: trainset.current_status || trainset.status, // Use current_status from CSV
+      status: mapStatusToFrontend(trainset.current_status || trainset.status), // Map status to frontend format
       bay_position: trainset.bay_position,
       mileage: trainset.mileage,
       last_cleaning: trainset.last_cleaning
@@ -218,17 +317,43 @@ router.put("/trainsets/:id/status", async (req, res) => {
       });
     }
 
-    const trainset = await Trainset.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
+    // Use direct database query to update the trainset
+    const db = mongoose.connection.db;
+
+    // Map frontend status back to database status
+    const mapStatusToDatabase = (frontendStatus) => {
+      const statusMap = {
+        ready: "in_service",
+        standby: "standby",
+        maintenance: "IBL_maintenance",
+        critical: "critical",
+      };
+      return statusMap[frontendStatus] || "standby";
+    };
+
+    const dbStatus = mapStatusToDatabase(status);
+
+    const result = await db.collection("trainsets").updateOne(
+      { _id: new mongoose.Types.ObjectId(req.params.id) },
+      {
+        $set: {
+          current_status: dbStatus,
+          status: dbStatus,
+          updated_at: new Date(),
+        },
+      }
     );
 
-    if (!trainset) {
+    if (result.matchedCount === 0) {
       return res.status(404).json({
         message: "Trainset not found",
       });
     }
+
+    // Get the updated trainset
+    const updatedTrainset = await db.collection("trainsets").findOne({
+      _id: new mongoose.Types.ObjectId(req.params.id),
+    });
 
     // Update metrics after status change
     await updateMetricsAfterStatusChange();
@@ -236,10 +361,12 @@ router.put("/trainsets/:id/status", async (req, res) => {
     res.json({
       message: "Trainset status updated successfully",
       trainset: {
-        id: trainset._id.toString(),
-        number: trainset.number,
-        status: trainset.status,
-        availability_percentage: trainset.availability_percentage,
+        id: updatedTrainset._id.toString(),
+        number: updatedTrainset.rake_number || updatedTrainset.trainset_id,
+        status: mapStatusToFrontend(
+          updatedTrainset.current_status || updatedTrainset.status
+        ),
+        availability_percentage: updatedTrainset.availability_percentage,
       },
     });
   } catch (error) {
@@ -451,10 +578,15 @@ router.post("/ai-schedule", async (req, res) => {
 // Helper function to update metrics after status changes
 const updateMetricsAfterStatusChange = async () => {
   try {
-    const trainsets = await Trainset.find();
+    const db = mongoose.connection.db;
+    const trainsets = await db.collection("trainsets").find({}).toArray();
 
+    // Map database statuses to frontend statuses for counting
     const statusCounts = trainsets.reduce((acc, train) => {
-      acc[train.status] = (acc[train.status] || 0) + 1;
+      const frontendStatus = mapStatusToFrontend(
+        train.current_status || train.status
+      );
+      acc[frontendStatus] = (acc[frontendStatus] || 0) + 1;
       return acc;
     }, {});
 
@@ -465,14 +597,20 @@ const updateMetricsAfterStatusChange = async () => {
     const criticalCount = statusCounts.critical || 0;
 
     const operationalFleet = readyCount + standbyCount;
-    const serviceability = Math.round((operationalFleet / totalFleet) * 100);
-    const avgAvailability = Math.round(
-      trainsets.reduce((sum, train) => sum + train.availability_percentage, 0) /
-        totalFleet
-    );
+    const serviceability =
+      totalFleet > 0 ? Math.round((operationalFleet / totalFleet) * 100) : 0;
+    const avgAvailability =
+      totalFleet > 0
+        ? Math.round(
+            trainsets.reduce(
+              (sum, train) => sum + (train.availability_percentage || 0),
+              0
+            ) / totalFleet
+          )
+        : 0;
 
-    // Update the most recent metrics
-    await Metrics.findOneAndUpdate(
+    // Update the most recent metrics in the metrics collection
+    await db.collection("metrics").updateOne(
       {},
       {
         $set: {

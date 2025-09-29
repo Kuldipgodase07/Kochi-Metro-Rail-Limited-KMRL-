@@ -56,12 +56,12 @@ function App() {
             {/* Module Routes */}
             <Route path="/fleet" element={
               <ProtectedRoute>
-                <FleetManagement />
+                <FleetOverviewPage />
               </ProtectedRoute>
             } />
             <Route path="/fleet-overview" element={
               <ProtectedRoute>
-                <FleetOverviewPage />
+                <FleetManagement />
               </ProtectedRoute>
             } />
             <Route path="/induction" element={

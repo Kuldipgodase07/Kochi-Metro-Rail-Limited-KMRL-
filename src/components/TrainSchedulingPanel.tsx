@@ -19,6 +19,7 @@ import {
   Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import jsPDF from 'jspdf';
 
 interface TrainData {
   trainset_id: number;
@@ -213,22 +214,214 @@ const TrainSchedulingPanel: React.FC<TrainSchedulingPanelProps> = ({ className }
   const exportSchedule = () => {
     if (!schedulingResult) return;
     
-    const data = {
-      scheduling_date: schedulingResult.scheduling_date,
-      selected_trains: schedulingResult.selected_trains,
-      optimization_score: schedulingResult.optimization_score,
-      execution_time: schedulingResult.execution_time,
+    // Create new PDF document
+    const doc = new jsPDF();
+    
+    // Helper function to add header to each page
+    const addHeader = (pageNum: number) => {
+      // Government of Kerala header
+      doc.setFillColor(0, 51, 102); // Dark blue
+      doc.rect(0, 0, 210, 25, 'F');
+      
+      // White text on blue background
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('GOVERNMENT OF KERALA', 20, 12);
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Kochi Metro Rail Limited (KMRL)', 20, 18);
+      
+      // Reset text color
+      doc.setTextColor(0, 0, 0);
+      
+      // Add page number
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Page ${pageNum}`, 180, 18);
     };
     
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `train_schedule_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Helper function to add footer
+    const addFooter = () => {
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Generated on ${new Date().toLocaleString()} | KMRL Train Scheduling System`, 20, 290);
+        doc.text(`Official Document - Confidential`, 150, 290);
+      }
+    };
+    
+    // Page 1: Cover Page
+    addHeader(1);
+    
+    // Main title
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 51, 102);
+    doc.text('TRAIN SCHEDULING', 20, 50);
+    doc.text('OPTIMIZATION REPORT', 20, 62);
+    
+    // Subtitle
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('Google OR-Tools Powered Optimization', 20, 80);
+    doc.text('Intelligent Fleet Management System', 20, 90);
+    
+    // Schedule details box
+    doc.setFillColor(248, 250, 252);
+    doc.rect(20, 110, 170, 70, 'F');
+    doc.setDrawColor(0, 51, 102);
+    doc.rect(20, 110, 170, 70, 'S');
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 51, 102);
+    doc.text('SCHEDULE DETAILS', 30, 125);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Schedule Date: ${schedulingResult.scheduling_date}`, 30, 140);
+    doc.text(`Report Generated: ${new Date().toLocaleDateString()}`, 30, 150);
+    doc.text(`Optimization Score: ${schedulingResult.optimization_score.toFixed(2)}`, 30, 160);
+    doc.text(`Execution Time: ${schedulingResult.execution_time.toFixed(2)} seconds`, 30, 170);
+    
+    // Fleet status summary
+    doc.setFillColor(240, 255, 240);
+    doc.rect(20, 190, 170, 50, 'F');
+    doc.setDrawColor(0, 128, 0);
+    doc.rect(20, 190, 170, 50, 'S');
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 100, 0);
+    doc.text('FLEET STATUS SUMMARY', 30, 205);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`✓ Selected Trains: ${schedulingResult.selected_trains.length}/24`, 30, 218);
+    doc.text(`✓ Remaining Trains: ${schedulingResult.remaining_trains.length}`, 30, 228);
+    doc.text(`✓ Solution Status: ${schedulingResult.solution_status}`, 30, 238);
+    
+    // Page 2: Detailed Schedule Table
+    doc.addPage();
+    addHeader(2);
+    
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 51, 102);
+    doc.text('SELECTED TRAINS SCHEDULE', 20, 45);
+    
+    // Table with enhanced styling and proper spacing
+    doc.setFillColor(0, 51, 102);
+    doc.rect(20, 55, 170, 15, 'F');
+    
+    // Table headers with white text and better spacing
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('No.', 25, 66);
+    doc.text('Train ID', 40, 66);
+    doc.text('Model', 80, 66);
+    doc.text('Status', 130, 66);
+    doc.text('Score', 160, 66);
+    doc.text('Bay', 180, 66);
+    
+    // Table data with improved formatting
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'normal');
+    let yPosition = 80;
+    schedulingResult.selected_trains.forEach((train, index) => {
+      if (yPosition > 270) {
+        doc.addPage();
+        addHeader(doc.getNumberOfPages());
+        // Re-add table header
+        doc.setFillColor(0, 51, 102);
+        doc.rect(20, 55, 170, 15, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.text('No.', 25, 66);
+        doc.text('Train ID', 40, 66);
+        doc.text('Model', 80, 66);
+        doc.text('Status', 130, 66);
+        doc.text('Score', 160, 66);
+        doc.text('Bay', 180, 66);
+        doc.setTextColor(0, 0, 0);
+        yPosition = 80;
+      }
+      
+      // Alternate row colors with better spacing
+      if (index % 2 === 0) {
+        doc.setFillColor(248, 249, 250);
+        doc.rect(20, yPosition - 5, 170, 10, 'F');
+      }
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text(`${index + 1}`, 25, yPosition);
+      doc.text(train.number, 40, yPosition);
+      doc.text(train.make_model, 80, yPosition);
+      doc.text(train.status, 130, yPosition);
+      doc.text(train.scheduling_score.toFixed(1), 160, yPosition);
+      doc.text(train.assigned_bay_id?.toString() || 'N/A', 180, yPosition);
+      yPosition += 12;
+    });
+    
+    // Page 3: Remaining Trains (if any)
+    if (schedulingResult.remaining_trains.length > 0) {
+      doc.addPage();
+      addHeader(3);
+      
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 51, 102);
+      doc.text('REMAINING TRAINS', 20, 45);
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Total Remaining Trains: ${schedulingResult.remaining_trains.length}`, 20, 60);
+      doc.text('These trains are available for backup operations, maintenance, or future scheduling:', 20, 75);
+      
+      // Top remaining trains
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TOP 10 REMAINING TRAINS (Ranked by Optimization Score):', 20, 95);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      let remainingY = 110;
+      schedulingResult.remaining_trains.slice(0, 10).forEach((train, index) => {
+        if (remainingY > 280) {
+          doc.addPage();
+          addHeader(doc.getNumberOfPages());
+          remainingY = 50;
+        }
+        
+        // Status color coding
+        const statusColor = train.status === 'ready' ? [0, 128, 0] : 
+                           train.status === 'standby' ? [255, 165, 0] : [128, 128, 128];
+        doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+        
+        doc.text(`${index + 1}. ${train.number} (${train.make_model})`, 20, remainingY);
+        doc.text(`   Status: ${train.status.toUpperCase()} | Score: ${train.scheduling_score.toFixed(1)}`, 20, remainingY + 5);
+        
+        doc.setTextColor(0, 0, 0);
+        remainingY += 15;
+      });
+    }
+    
+    // Add footer to all pages
+    addFooter();
+    
+    // Save the PDF with official naming
+    const reportDate = new Date().toISOString().split('T')[0];
+    doc.save(`KMRL_Train_Schedule_Report_${schedulingResult.scheduling_date}_${reportDate}.pdf`);
   };
 
   return (
@@ -253,7 +446,7 @@ const TrainSchedulingPanel: React.FC<TrainSchedulingPanelProps> = ({ className }
           {schedulingResult && (
             <Button variant="outline" onClick={exportSchedule}>
               <Download className="h-4 w-4 mr-2" />
-              Export Schedule
+              Export as PDF
             </Button>
           )}
         </div>

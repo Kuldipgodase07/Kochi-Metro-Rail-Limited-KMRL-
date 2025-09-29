@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Activity, Clock, Wrench, Zap, TrendingUp, AlertTriangle } from "lucide-react"
+import { Activity, Clock, Wrench, Zap, TrendingUp } from "lucide-react"
 import { useTranslation } from 'react-i18next'
 
 interface SystemMetricsProps {
@@ -162,77 +162,6 @@ export function SystemMetrics({ metrics, isLoading }: SystemMetricsProps) {
         </CardContent>
       </Card>
 
-      {/* Alerts */}
-      {(() => {
-        const alerts = metrics?.alerts || [
-          {
-            type: 'info',
-            message: 'R1001 - Scheduled maintenance due in 48 hours',
-            priority: 'medium',
-            trainset: 'R1001'
-          },
-          {
-            type: 'success',
-            message: 'R1005 - Cleaning cycle completed successfully',
-            priority: 'low',
-            trainset: 'R1005'
-          },
-          {
-            type: 'critical',
-            message: 'R1012 - Emergency brake system requires immediate attention',
-            priority: 'critical',
-            trainset: 'R1012'
-          }
-        ]
-        
-        return alerts.length > 0 && (
-          <Card className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-xl dark:shadow-black/10">
-          <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b dark:border-gray-600">
-            <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-white">
-              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-              <span>{t('dashboard.systemAlerts')}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {alerts.slice(0, 5).map((alert: any, index: number) => (
-                <div
-                  key={index}
-                  className={`p-3 rounded-lg border-l-4 transition-colors duration-200 ${
-                    alert.type === 'critical' 
-                      ? 'bg-red-50 dark:bg-red-950/30 border-red-500 dark:border-red-400 text-red-900 dark:text-red-100' 
-                      : alert.type === 'warning'
-                      ? 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-500 dark:border-yellow-400 text-yellow-900 dark:text-yellow-100'
-                      : 'bg-blue-50 dark:bg-blue-950/30 border-blue-500 dark:border-blue-400 text-blue-900 dark:text-blue-100'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-sm">
-                        {alert.trainset} - {alert.message}
-                      </div>
-                    </div>
-                    <Badge 
-                      className={`text-xs px-2 py-1 ${
-                        alert.priority === 'medium' || alert.message?.includes('maintenance')
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : alert.priority === 'low' || alert.message?.includes('cleaning')
-                          ? 'bg-blue-100 text-blue-800'
-                          : alert.priority === 'critical'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-blue-100 text-blue-800'
-                      }`}
-                    >
-                      {alert.priority}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-          </Card>
-        )
-      })()}
     </div>
   )
 }

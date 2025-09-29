@@ -124,10 +124,13 @@ const mockJobCards: JobCard[] = [
 ];
 
 const MaintenanceTracking: React.FC = () => {
-  const [jobCards] = useState<JobCard[]>(mockJobCards);
+  const [jobCards, setJobCards] = useState<JobCard[]>(mockJobCards);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedJobCard, setSelectedJobCard] = useState<JobCard | null>(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<string>('');
+  const [updateNotes, setUpdateNotes] = useState<string>('');
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -151,6 +154,32 @@ const MaintenanceTracking: React.FC = () => {
     };
     const config = priorityConfig[priority as keyof typeof priorityConfig];
     return <Badge className={`${config.color} text-white`}>{config.text}</Badge>;
+  };
+
+  const handleUpdateStatus = (jobCard: JobCard) => {
+    setSelectedJobCard(jobCard);
+    setUpdateStatus(jobCard.status);
+    setUpdateNotes('');
+    setShowUpdateModal(true);
+  };
+
+  const handleStatusUpdate = () => {
+    if (!selectedJobCard || !updateStatus) return;
+
+    // Update the job card status
+    setJobCards(prevCards => 
+      prevCards.map(card => 
+        card.id === selectedJobCard.id 
+          ? { ...card, status: updateStatus as any, completedDate: updateStatus === 'completed' ? new Date().toISOString().split('T')[0] : card.completedDate }
+          : card
+      )
+    );
+
+    // Close modal and reset state
+    setShowUpdateModal(false);
+    setSelectedJobCard(null);
+    setUpdateStatus('');
+    setUpdateNotes('');
   };
 
   const getTypeBadge = (type: string) => {
@@ -391,7 +420,7 @@ const MaintenanceTracking: React.FC = () => {
                 <Button size="sm" variant="outline" className="flex-1">
                   View Details
                 </Button>
-                <Button size="sm" className="flex-1">
+                <Button size="sm" className="flex-1" onClick={() => handleUpdateStatus(jobCard)}>
                   Update Status
                 </Button>
               </div>
@@ -578,6 +607,81 @@ const MaintenanceTracking: React.FC = () => {
                   </div>
                 </TabsContent>
               </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Update Status Modal */}
+      {showUpdateModal && selectedJobCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Update Job Card Status</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowUpdateModal(false)}
+                >
+                  ×
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Job Card: {selectedJobCard.number}</label>
+                <label className="block text-sm font-medium mb-2">Train: {selectedJobCard.trainset}</label>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Current Status</label>
+                <div className="p-2 bg-gray-100 rounded">
+                  {getStatusBadge(selectedJobCard.status)}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">New Status</label>
+                <select 
+                  value={updateStatus} 
+                  onChange={(e) => setUpdateStatus(e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="open">Open</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="pending-parts">Pending Parts</option>
+                  <option value="testing">Testing</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Update Notes (Optional)</label>
+                <textarea 
+                  value={updateNotes}
+                  onChange={(e) => setUpdateNotes(e.target.value)}
+                  className="w-full p-2 border rounded-md h-20"
+                  placeholder="Add any notes about the status update..."
+                />
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  variant="outline" 
+                  className="flex-1" 
+                  onClick={() => setShowUpdateModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1" 
+                  onClick={handleStatusUpdate}
+                >
+                  Update Status
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
