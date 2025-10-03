@@ -28,6 +28,7 @@ import ReportsPage from '@/pages/ReportsPage'
 import PassengerInfo from '@/pages/PassengerInfo'
 import TicketingRevenue from '@/pages/TicketingRevenue'
 import IncidentResponse from '@/pages/IncidentResponse'
+import DeepRLSchedulingPage from '@/pages/DeepRLSchedulingPage'
 import NotFound from '@/pages/NotFound'
 import APIDebugger from '@/components/APIDebugger'
 import './App.css'
@@ -137,6 +138,11 @@ function App() {
             <Route path="/incident-response" element={
               <ProtectedRoute>
                 <IncidentResponse />
+              </ProtectedRoute>
+            } />
+            <Route path="/deep-rl-scheduling" element={
+              <ProtectedRoute>
+                <DeepRLSchedulingPage />
               </ProtectedRoute>
             } />
             <Route path="/comprehensive-reports" element={

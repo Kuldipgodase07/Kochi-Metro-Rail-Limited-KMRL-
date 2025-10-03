@@ -27,6 +27,16 @@ interface FuturisticNavigationProps {}
 
 const moduleData = [
   {
+    id: 'deep-rl',
+    key: 'scheduling.deepRLTest',
+    icon: Zap,
+    iconBg: 'bg-lime-50',
+    iconText: 'text-lime-600',
+    ring: 'ring-lime-200',
+    glow: 'from-lime-200/50 to-lime-300/30',
+    description: 'Test the Deep RL model for train scheduling'
+  },
+  {
     id: 'fleet',
     key: 'modules.fleetManagement',
     icon: Database,
@@ -214,6 +224,7 @@ export function FuturisticNavigation({}: FuturisticNavigationProps) {
   const [hoveredModule, setHoveredModule] = useState<string | null>(null)
 
   const moduleRoutes: { [key: string]: string } = {
+    'deep-rl': '/deep-rl-scheduling',
     'fleet': '/fleet',
     'fleet-overview': '/fleet-overview',
     'induction': '/induction', 

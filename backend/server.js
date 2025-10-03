@@ -14,6 +14,7 @@ import stablingRoutes from "./routes/stabling.js";
 import optimizerRoutes from "./routes/optimizer.js";
 import feedbackRoutes from "./routes/feedback.js";
 import schedulingRoutes from "./routes/scheduling.js";
+import rlScheduleRoute from "./routes/rlSchedule.js";
 
 // Load environment variables
 dotenv.config();
@@ -80,6 +81,10 @@ app.use("/api/optimizer", optimizerRoutes);
 // Induction feedback endpoints
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/scheduling", schedulingRoutes);
+
+// RL Scheduling API
+app.use("/api", rlScheduleRoute);
+
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Apply rate limiting to all requests (after CORS so preflight gets headers)

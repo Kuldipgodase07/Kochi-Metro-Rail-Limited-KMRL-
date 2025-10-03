@@ -11,7 +11,14 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "::",
       port: isProd ? 4173 : 8080,
-      open: !isProd
+      open: !isProd,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false
+        }
+      }
     },
     plugins: [react()],
     resolve: {
