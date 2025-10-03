@@ -43,7 +43,7 @@ router.get("/trainsets", async (req, res) => {
     const trainsets = await db
       .collection("trainsets")
       .find({})
-      .sort({ bay_position: 1 })
+      .sort({ number: 1 })
       .toArray();
 
     console.log(`✅ Found ${trainsets.length} trainsets`);
@@ -95,7 +95,7 @@ router.get("/trainsets", async (req, res) => {
     // Transform CSV data to match frontend interface with comprehensive data
     const transformedTrainsets = trainsets.map((trainset) => ({
       id: trainset._id.toString(),
-      number: trainset.rake_number || trainset.trainset_id, // Use rake_number from CSV
+      number: trainset.number || trainset.rake_number || trainset.trainset_id || 'N/A', // Use number field from MongoDB
       status: mapStatusToFrontend(trainset.current_status || trainset.status), // Map status to frontend format
       bay_position: trainset.bay_position,
       mileage:
@@ -631,5 +631,97 @@ const updateMetricsAfterStatusChange = async () => {
     console.error("Error updating metrics:", error);
   }
 };
+
+// @route   PUT /api/data/trainsets/:id
+// @desc    Update trainset details in MongoDB
+// @access  Public
+router.put("/trainsets/:id", async (req, res) => {
+  try {
+    const { 
+      status, 
+      bay_position, 
+      mileage, 
+      availability_percentage, 
+      branding_priority,
+      last_cleaning 
+    } = req.body;
+
+    const db = mongoose.connection.db;
+    const updateFields = {};
+
+    // Map frontend status back to database status if provided
+    if (status) {
+      const validStatuses = ["ready", "standby", "maintenance", "critical"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          message: "Invalid status value",
+        });
+      }
+
+      const mapStatusToDatabase = (frontendStatus) => {
+        const statusMap = {
+          ready: "in_service",
+          standby: "standby",
+          maintenance: "IBL_maintenance",
+          critical: "critical",
+        };
+        return statusMap[frontendStatus] || "standby";
+      };
+
+      const dbStatus = mapStatusToDatabase(status);
+      updateFields.current_status = dbStatus;
+      updateFields.status = dbStatus;
+    }
+
+    // Add other fields if provided
+    if (bay_position !== undefined) updateFields.bay_position = parseInt(bay_position);
+    if (mileage !== undefined) updateFields.mileage = parseInt(mileage);
+    if (availability_percentage !== undefined) updateFields.availability_percentage = parseFloat(availability_percentage);
+    if (branding_priority !== undefined) updateFields.branding_priority = parseInt(branding_priority);
+    if (last_cleaning) updateFields.last_cleaning = new Date(last_cleaning);
+    
+    updateFields.updated_at = new Date();
+
+    // Perform the update
+    const result = await db.collection("trainsets").updateOne(
+      { _id: new mongoose.Types.ObjectId(req.params.id) },
+      { $set: updateFields }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        message: "Trainset not found",
+      });
+    }
+
+    // Get the updated trainset
+    const updatedTrainset = await db.collection("trainsets").findOne({
+      _id: new mongoose.Types.ObjectId(req.params.id),
+    });
+
+    // Update metrics after change
+    await updateMetricsAfterStatusChange();
+
+    res.json({
+      message: "Trainset updated successfully",
+      trainset: {
+        id: updatedTrainset._id.toString(),
+        number: updatedTrainset.number || updatedTrainset.rake_number || updatedTrainset.trainset_id || 'N/A',
+        status: mapStatusToFrontend(updatedTrainset.current_status || updatedTrainset.status),
+        bay_position: updatedTrainset.bay_position,
+        mileage: updatedTrainset.mileage,
+        availability_percentage: updatedTrainset.availability_percentage,
+        branding_priority: updatedTrainset.branding_priority,
+        last_cleaning: updatedTrainset.last_cleaning,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating trainset:", error);
+    res.status(500).json({
+      message: "Server error while updating trainset",
+      error: error.message
+    });
+  }
+});
 
 export default router;

@@ -51,7 +51,7 @@ export function TrainCard({ trainset }: TrainCardProps) {
               <Train className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">{trainset.number}</h3>
+              <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400">{trainset.number || 'N/A'}</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">Bay {trainset.bay_position || 'N/A'}</p>
             </div>
           </div>

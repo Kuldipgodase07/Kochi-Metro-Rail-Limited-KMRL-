@@ -27,6 +27,27 @@ import {
   Zap
 } from 'lucide-react';
 
+// Utility function to format date
+const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    
+    // Format: Oct 3, 2025 10:30 AM
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (error) {
+    return 'N/A';
+  }
+};
+
 interface Trainset {
   id: string;
   number: string;
@@ -52,6 +73,10 @@ const FleetManagement: React.FC = () => {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [showTrainsetModal, setShowTrainsetModal] = useState(false);
   const [selectedTrainsetForModal, setSelectedTrainsetForModal] = useState<any>(null);
+  const [showQuickActionsModal, setShowQuickActionsModal] = useState(false);
+  const [quickActionsTrainset, setQuickActionsTrainset] = useState<any>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateFormData, setUpdateFormData] = useState<any>({});
   const { toast } = useToast();
 
   // Show loading state
@@ -169,10 +194,59 @@ const FleetManagement: React.FC = () => {
   }
 
   const handleQuickActions = (trainset: any) => {
-    toast({
-      title: 'Quick Actions',
-      description: `Quick actions for trainset ${trainset.number} - Feature coming soon!`,
+    setQuickActionsTrainset(trainset);
+    setUpdateFormData({
+      status: trainset.status,
+      bay_position: trainset.bay_position || '',
+      mileage: trainset.mileage || '',
+      availability_percentage: trainset.availability_percentage || '',
+      branding_priority: trainset.branding_priority || '',
+      last_cleaning: trainset.last_cleaning ? new Date(trainset.last_cleaning).toISOString().slice(0, 16) : ''
     });
+    setShowQuickActionsModal(true);
+  }
+
+  const handleUpdateTrainset = async () => {
+    if (!quickActionsTrainset) return;
+
+    setIsUpdating(true);
+    try {
+      const token = localStorage.getItem('train_plan_wise_token');
+      const response = await fetch(`http://localhost:5000/api/data/trainsets/${quickActionsTrainset.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(updateFormData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: `Trainset ${quickActionsTrainset.number} updated successfully`,
+        });
+        setShowQuickActionsModal(false);
+        refetch(); // Refresh the trainsets list
+      } else {
+        toast({
+          title: 'Error',
+          description: data.message || 'Failed to update trainset',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating trainset:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update trainset. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -447,7 +521,7 @@ const FleetManagement: React.FC = () => {
 
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600 dark:text-gray-300">Last Cleaning</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{trainset.last_cleaning || 'N/A'}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{formatDate(trainset.last_cleaning)}</span>
                   </div>
 
                   {trainset.status === 'critical' && (
@@ -516,7 +590,7 @@ const FleetManagement: React.FC = () => {
                       <div className="space-y-1">
                         <p className="text-sm"><span className="font-medium">Availability:</span> {selectedTrainsetForModal.availability_percentage || 0}%</p>
                         <p className="text-sm"><span className="font-medium">Branding Priority:</span> {selectedTrainsetForModal.branding_priority || 0}/10</p>
-                        <p className="text-sm"><span className="font-medium">Last Cleaning:</span> {selectedTrainsetForModal.last_cleaning || 'N/A'}</p>
+                        <p className="text-sm"><span className="font-medium">Last Cleaning:</span> {formatDate(selectedTrainsetForModal.last_cleaning)}</p>
                       </div>
                     </div>
                   </div>
@@ -691,6 +765,165 @@ const FleetManagement: React.FC = () => {
                       </div>
                     </TabsContent>
                   </Tabs>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Quick Actions Modal */}
+          {showQuickActionsModal && quickActionsTrainset && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-xl">
+                      Quick Update - Trainset {quickActionsTrainset.number}
+                    </CardTitle>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setShowQuickActionsModal(false)}
+                      disabled={isUpdating}
+                    >
+                      <XCircle className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Status */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Status
+                        </label>
+                        <select
+                          value={updateFormData.status}
+                          onChange={(e) => setUpdateFormData({ ...updateFormData, status: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500"
+                        >
+                          <option value="ready">Ready / In Service</option>
+                          <option value="standby">Standby</option>
+                          <option value="maintenance">Maintenance</option>
+                          <option value="critical">Critical</option>
+                        </select>
+                      </div>
+
+                      {/* Bay Position */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Bay Position
+                        </label>
+                        <Input
+                          type="number"
+                          value={updateFormData.bay_position}
+                          onChange={(e) => setUpdateFormData({ ...updateFormData, bay_position: e.target.value })}
+                          placeholder="Enter bay position"
+                          className="bg-white dark:bg-gray-800"
+                        />
+                      </div>
+
+                      {/* Mileage */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Mileage (km)
+                        </label>
+                        <Input
+                          type="number"
+                          value={updateFormData.mileage}
+                          onChange={(e) => setUpdateFormData({ ...updateFormData, mileage: e.target.value })}
+                          placeholder="Enter mileage"
+                          className="bg-white dark:bg-gray-800"
+                        />
+                      </div>
+
+                      {/* Availability Percentage */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Availability (%)
+                        </label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={updateFormData.availability_percentage}
+                          onChange={(e) => setUpdateFormData({ ...updateFormData, availability_percentage: e.target.value })}
+                          placeholder="Enter availability %"
+                          className="bg-white dark:bg-gray-800"
+                        />
+                      </div>
+
+                      {/* Branding Priority */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Branding Priority (1-10)
+                        </label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={updateFormData.branding_priority}
+                          onChange={(e) => setUpdateFormData({ ...updateFormData, branding_priority: e.target.value })}
+                          placeholder="Enter priority"
+                          className="bg-white dark:bg-gray-800"
+                        />
+                      </div>
+
+                      {/* Last Cleaning */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Last Cleaning
+                        </label>
+                        <Input
+                          type="datetime-local"
+                          value={updateFormData.last_cleaning}
+                          onChange={(e) => setUpdateFormData({ ...updateFormData, last_cleaning: e.target.value })}
+                          className="bg-white dark:bg-gray-800"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Current Values Info */}
+                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Current Values</h4>
+                      <div className="grid grid-cols-2 gap-2 text-sm text-blue-800 dark:text-blue-200">
+                        <div><span className="font-medium">Status:</span> {getStatusBadge(quickActionsTrainset.status)}</div>
+                        <div><span className="font-medium">Bay Position:</span> {quickActionsTrainset.bay_position || 'N/A'}</div>
+                        <div><span className="font-medium">Mileage:</span> {(quickActionsTrainset.mileage || 0).toLocaleString()} km</div>
+                        <div><span className="font-medium">Availability:</span> {quickActionsTrainset.availability_percentage || 0}%</div>
+                        <div><span className="font-medium">Priority:</span> {quickActionsTrainset.branding_priority || 0}/10</div>
+                        <div><span className="font-medium">Last Cleaning:</span> {formatDate(quickActionsTrainset.last_cleaning)}</div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        variant="outline"
+                        className="flex-1 border-gray-300 dark:border-gray-600"
+                        onClick={() => setShowQuickActionsModal(false)}
+                        disabled={isUpdating}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+                        onClick={handleUpdateTrainset}
+                        disabled={isUpdating}
+                      >
+                        {isUpdating ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Update Trainset
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
