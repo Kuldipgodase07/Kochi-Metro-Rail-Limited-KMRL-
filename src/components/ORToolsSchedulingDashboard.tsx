@@ -20,7 +20,7 @@ import {
   RotateCcw,
   Clock,
   Settings,
-  Target
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from 'react-i18next';
@@ -69,6 +69,7 @@ export function ORToolsSchedulingDashboard({ className }: ORToolsSchedulingDashb
     remaining: TrainData[];
   } | null>(null);
   const [serviceStatus, setServiceStatus] = useState<'unknown' | 'online' | 'offline'>('unknown');
+  const [showConstraintsModal, setShowConstraintsModal] = useState(false);
 
   // Check OR-Tools service status
   useEffect(() => {
@@ -423,13 +424,17 @@ export function ORToolsSchedulingDashboard({ className }: ORToolsSchedulingDashb
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setShowConstraintsModal(true)}
+          >
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <Settings className="h-5 w-5 text-indigo-500" />
                 <div>
                   <p className="text-sm font-medium">Constraints</p>
-                  <p className="text-2xl font-bold">{schedulingResult.solver_stats?.total_constraints || 0}</p>
+                  <p className="text-2xl font-bold">{schedulingResult.solver_stats?.total_constraints || 7}</p>
+                  <p className="text-xs text-gray-500 mt-1">Click to view details</p>
                 </div>
               </div>
             </CardContent>
@@ -619,6 +624,209 @@ export function ORToolsSchedulingDashboard({ className }: ORToolsSchedulingDashb
                     <strong>Exclusion Reason:</strong> {selectedTrain.exclusion_reason}
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Constraints Information Modal */}
+      {showConstraintsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+            <CardHeader className="border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-600 rounded-lg">
+                    <Settings className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">OR-Tools Optimization Constraints</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      7 constraints used in the scheduling optimization
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowConstraintsModal(false)}
+                  className="hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {/* Constraint 1 */}
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                      1
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-blue-900 dark:text-blue-100 mb-1">
+                        Exact Train Count (Hard Constraint)
+                      </h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        Select exactly <strong>24 trains</strong> for the scheduled service.
+                      </p>
+                      <Badge className="bg-red-600 text-white">Hard Constraint</Badge>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Constraint 2 */}
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold">
+                      2
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-green-900 dark:text-green-100 mb-1">
+                        Depot Load Balancing
+                      </h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        Distribute trains roughly equally between <strong>Depot A</strong> and <strong>Depot B</strong>.
+                      </p>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <p>• Depot A: 9-15 trains</p>
+                        <p>• Depot B: 9-15 trains</p>
+                        <p>• Ensures operational efficiency across both depots</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Constraint 3 */}
+                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">
+                      3
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-purple-900 dark:text-purple-100 mb-1">
+                        Age Diversity
+                      </h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        Maintain a balanced mix of <strong>newer</strong> and <strong>older</strong> trains.
+                      </p>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <p>• At least 8 trains commissioned within last 5 years</p>
+                        <p>• Prevents over-reliance on older rolling stock</p>
+                        <p>• Ensures modern features and reliability</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Constraint 4 */}
+                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold">
+                      4
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-orange-900 dark:text-orange-100 mb-1">
+                        Manufacturer Diversity
+                      </h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        Include trains from multiple manufacturers to reduce <strong>single-point failures</strong>.
+                      </p>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <p>• At least 4 trains from Hyundai Rotem</p>
+                        <p>• At least 4 trains from Alstom</p>
+                        <p>• At least 4 trains from BEML</p>
+                        <p>• Mitigates manufacturer-specific issues</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Constraint 5 */}
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center font-bold">
+                      5
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-yellow-900 dark:text-yellow-100 mb-1">
+                        Maintenance Status Filter
+                      </h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        Exclude trains currently under <strong>maintenance</strong> or in <strong>IBL status</strong>.
+                      </p>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <p>• Only "Ready" and "Standby" trains are eligible</p>
+                        <p>• Ensures operational availability</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Constraint 6 */}
+                <div className="p-4 bg-teal-50 dark:bg-teal-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-teal-600 text-white rounded-full flex items-center justify-center font-bold">
+                      6
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-teal-900 dark:text-teal-100 mb-1">
+                        Availability Score Threshold
+                      </h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        Prioritize trains with <strong>high availability scores</strong> (≥50%).
+                      </p>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <p>• Based on fitness certificates, job cards, and mileage</p>
+                        <p>• Ensures reliable service delivery</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Constraint 7 */}
+                <div className="p-4 bg-pink-50 dark:bg-pink-900/20 rounded-lg border border-pink-200 dark:border-pink-800">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center font-bold">
+                      7
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-pink-900 dark:text-pink-100 mb-1">
+                        Maximize Total Availability (Objective)
+                      </h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        Optimization objective: Maximize the <strong>sum of availability scores</strong> of selected trains.
+                      </p>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <p>• Selects the best combination meeting all constraints</p>
+                        <p>• Balances multiple competing factors</p>
+                        <p>• Uses CP-SAT solver for optimal solution</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Solver Information */}
+                <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Brain className="h-6 w-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-1" />
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                        Solver Technology
+                      </h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        Powered by <strong>Google OR-Tools CP-SAT Solver</strong> - An award-winning constraint programming solver used in production by Google and major enterprises worldwide.
+                      </p>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <p>• Constraint Programming + Boolean Satisfiability</p>
+                        <p>• Guarantees optimal or near-optimal solutions</p>
+                        <p>• Timeout: 10 seconds for fast results</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
