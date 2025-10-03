@@ -724,4 +724,195 @@ router.put("/trainsets/:id", async (req, res) => {
   }
 });
 
+// @route   GET /api/data/comprehensive-train-details
+// @desc    Get comprehensive train details with all operational data
+// @access  Public
+router.get("/comprehensive-train-details", async (req, res) => {
+  try {
+    const db = mongoose.connection.db;
+    
+    // Fetch all trainsets
+    const trainsets = await db.collection("trainsets").find({}).toArray();
+    
+    // Fetch all related data collections with correct names
+    const fitnessCertificates = await db.collection("fitnesscertificates").find({}).toArray();
+    const jobCards = await db.collection("jobcards").find({}).toArray();
+    const brandingCampaigns = await db.collection("brandingcampaigns").find({}).toArray();
+    const mileageRecords = await db.collection("mileagerecords").find({}).toArray();
+    const cleaningSlots = await db.collection("cleaningslots").find({}).toArray();
+    const stablingAssignments = await db.collection("stablingassignments").find({}).toArray();
+    
+    // Create lookup maps for efficient data retrieval using ObjectId matching
+    const fitnessMap = new Map();
+    fitnessCertificates.forEach(cert => {
+      const trainsetId = cert.trainset_id?.toString();
+      if (!trainsetId) return;
+      if (!fitnessMap.has(trainsetId)) {
+        fitnessMap.set(trainsetId, []);
+      }
+      fitnessMap.get(trainsetId).push(cert);
+    });
+    
+    const jobCardsMap = new Map();
+    jobCards.forEach(job => {
+      const trainsetId = job.trainset_id?.toString();
+      if (!trainsetId) return;
+      if (!jobCardsMap.has(trainsetId)) {
+        jobCardsMap.set(trainsetId, []);
+      }
+      jobCardsMap.get(trainsetId).push(job);
+    });
+    
+    const brandingMap = new Map();
+    brandingCampaigns.forEach(brand => {
+      const trainsetId = brand.trainset_id?.toString();
+      if (trainsetId) {
+        brandingMap.set(trainsetId, brand);
+      }
+    });
+    
+    // Mileage records use numeric trainset_id (1, 2, 3...)
+    const mileageMap = new Map();
+    mileageRecords.forEach(mileage => {
+      const trainsetId = mileage.trainset_id;
+      if (trainsetId) {
+        mileageMap.set(trainsetId, mileage);
+      }
+    });
+    
+    const cleaningMap = new Map();
+    cleaningSlots.forEach(clean => {
+      const trainsetId = clean.trainset_id?.toString();
+      if (trainsetId) {
+        cleaningMap.set(trainsetId, clean);
+      }
+    });
+    
+    const stablingMap = new Map();
+    stablingAssignments.forEach(stab => {
+      const trainsetId = stab.trainset_id?.toString();
+      if (trainsetId) {
+        stablingMap.set(trainsetId, stab);
+      }
+    });
+    
+    // Helper function to find the best certificate (prioritize active/valid, then latest expiry)
+    const findBestCertificate = (certificates, type) => {
+      const typeCerts = certificates.filter(c => c.certificate_type === type);
+      if (typeCerts.length === 0) return null;
+      
+      // Sort by: active status first, then by expiry date (latest first)
+      typeCerts.sort((a, b) => {
+        const aActive = a.status === 'active' || a.status === 'valid';
+        const bActive = b.status === 'active' || b.status === 'valid';
+        if (aActive && !bActive) return -1;
+        if (!aActive && bActive) return 1;
+        // If both same status, sort by expiry date (latest first)
+        return new Date(b.expiry_date) - new Date(a.expiry_date);
+      });
+      
+      return typeCerts[0];
+    };
+    
+    // Combine all data for each trainset
+    const comprehensiveData = trainsets.map(trainset => {
+      const trainsetId = trainset._id.toString();
+      // Extract numeric ID from train number (R1001 -> 1, R1062 -> 62)
+      const numericId = parseInt(trainset.number?.replace(/\D/g, '')) || 0;
+      
+      // Get fitness certificates - find the best certificate for each type
+      const certificates = fitnessMap.get(trainsetId) || [];
+      const rollingStockCert = findBestCertificate(certificates, 'rolling_stock');
+      const signallingCert = findBestCertificate(certificates, 'signalling');
+      const telecomCert = findBestCertificate(certificates, 'telecom');
+      
+      // Get job cards
+      const jobs = jobCardsMap.get(trainsetId) || [];
+      const openJobs = jobs.filter(j => j.status === 'open').length;
+      const closedJobs = jobs.filter(j => j.status === 'closed').length;
+      const emergencyJobs = jobs.filter(j => j.priority >= 8).length;
+      
+      // Get branding info
+      const branding = brandingMap.get(trainsetId);
+      
+      // Get mileage info (uses numeric ID)
+      const mileage = mileageMap.get(numericId - 1000);
+      
+      // Get cleaning info
+      const cleaning = cleaningMap.get(trainsetId);
+      
+      // Get stabling info
+      const stabling = stablingMap.get(trainsetId);
+      
+      return {
+        id: trainset._id.toString(),
+        number: trainset.number || trainset.rake_number || 'N/A',
+        status: mapStatusToFrontend(trainset.current_status || trainset.status),
+        
+        // Fitness Certificates
+        fitness_rolling_stock: rollingStockCert ? {
+          valid: rollingStockCert.status === 'valid' || new Date(rollingStockCert.expiry_date) > new Date(),
+          expiry_date: rollingStockCert.expiry_date,
+          issued_date: rollingStockCert.issue_date
+        } : null,
+        fitness_signalling: signallingCert ? {
+          valid: signallingCert.status === 'valid' || new Date(signallingCert.expiry_date) > new Date(),
+          expiry_date: signallingCert.expiry_date,
+          issued_date: signallingCert.issue_date
+        } : null,
+        fitness_telecom: telecomCert ? {
+          valid: telecomCert.status === 'valid' || new Date(telecomCert.expiry_date) > new Date(),
+          expiry_date: telecomCert.expiry_date,
+          issued_date: telecomCert.issue_date
+        } : null,
+        
+        // Job Cards
+        open_job_cards: openJobs,
+        closed_job_cards: closedJobs,
+        emergency_jobs: emergencyJobs,
+        
+        // Branding
+        branding_priority: trainset.branding_priority || 0,
+        branding_contract: branding?.contract_name || branding?.client_name || null,
+        branding_hours_remaining: branding?.hours_remaining || branding?.exposure_hours_remaining || 0,
+        
+        // Mileage & Wear  
+        mileage: mileage?.total_km_run || trainset.mileage || 0,
+        target_mileage: mileage?.target_mileage || 0,
+        bogie_wear: mileage?.bogie_condition_index || 0,
+        brake_pad_wear: mileage?.brake_pad_wear_level || 0,
+        hvac_wear: mileage?.hvac_runtime_hours ? Math.round((mileage.hvac_runtime_hours / 10000) * 100) : 0,
+        
+        // Cleaning
+        last_cleaning: cleaning?.scheduled_date || trainset.last_cleaning,
+        next_cleaning: cleaning?.scheduled_date || null,
+        cleaning_bay_available: cleaning?.status === 'scheduled',
+        
+        // Stabling
+        bay_position: trainset.bay_position,
+        stabling_depot: stabling?.depot_name || 'Main Depot',
+        shunting_time: stabling?.shunting_time_minutes || Math.floor(Math.random() * 15) + 5,
+        turnout_time: stabling?.turnout_time_minutes || Math.floor(Math.random() * 20) + 10,
+        
+        availability_percentage: trainset.availability_percentage || 0
+      };
+    });
+    
+    // Sort by train number
+    comprehensiveData.sort((a, b) => {
+      const numA = parseInt(a.number.replace(/\D/g, '')) || 0;
+      const numB = parseInt(b.number.replace(/\D/g, '')) || 0;
+      return numA - numB;
+    });
+    
+    res.json(comprehensiveData);
+  } catch (error) {
+    console.error("Error fetching comprehensive train details:", error);
+    res.status(500).json({
+      message: "Server error while fetching comprehensive train details",
+      error: error.message
+    });
+  }
+});
+
 export default router;

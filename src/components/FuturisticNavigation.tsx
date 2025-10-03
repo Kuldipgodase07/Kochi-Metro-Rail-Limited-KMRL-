@@ -187,6 +187,16 @@ const moduleData = [
     description: 'Advanced analytics and executive dashboards'
   },
   {
+    id: 'comprehensive-details',
+    key: 'modules.comprehensiveDetails',
+    icon: Database,
+    iconBg: 'bg-purple-50',
+    iconText: 'text-purple-600',
+    ring: 'ring-purple-200',
+    glow: 'from-purple-200/50 to-purple-300/30',
+    description: 'Complete operational data for all trains'
+  },
+  {
     id: 'passenger-info',
     key: 'modules.passengerInfo',
     icon: Users,
@@ -240,6 +250,7 @@ export function FuturisticNavigation({}: FuturisticNavigationProps) {
     'train-scheduling': '/train-scheduling',
     'reports': '/reports',
     'comprehensive': '/comprehensive-reports',
+    'comprehensive-details': '/comprehensive-details',
     'passenger-info': '/passenger-info',
     'ticketing-revenue': '/ticketing-revenue',
     'incident-response': '/incident-response'

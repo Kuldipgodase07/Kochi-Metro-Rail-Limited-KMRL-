@@ -29,6 +29,7 @@ import PassengerInfo from '@/pages/PassengerInfo'
 import TicketingRevenue from '@/pages/TicketingRevenue'
 import IncidentResponse from '@/pages/IncidentResponse'
 import DeepRLSchedulingPage from '@/pages/DeepRLSchedulingPage'
+import ComprehensiveTrainDetails from '@/pages/ComprehensiveTrainDetails'
 import NotFound from '@/pages/NotFound'
 import APIDebugger from '@/components/APIDebugger'
 import './App.css'
@@ -148,6 +149,11 @@ function App() {
             <Route path="/comprehensive-reports" element={
               <ProtectedRoute>
                 <ComprehensiveReporting />
+              </ProtectedRoute>
+            } />
+            <Route path="/comprehensive-details" element={
+              <ProtectedRoute>
+                <ComprehensiveTrainDetails />
               </ProtectedRoute>
             } />
             <Route path="/debug" element={<APIDebugger />} />
