@@ -351,10 +351,10 @@ def root():
     })
 
 if __name__ == '__main__':
-    print("🚀 Starting Google OR-Tools Train Scheduling Service...")
-    print("📊 Loading OR-Tools constraint programming solver...")
-    print("🚂 Initializing train fleet optimization...")
-    print("🌐 Service will be available at: http://localhost:8001")
-    print("📡 Frontend should connect to: http://localhost:8001/api/train-scheduling/optimize")
+    print("Starting Google OR-Tools Train Scheduling Service...")
+    print("Loading OR-Tools constraint programming solver...")
+    print("Initializing train fleet optimization...")
+    print("Service will be available at: http://localhost:8001")
+    print("Frontend should connect to: http://localhost:8001/api/train-scheduling/optimize")
     
     app.run(host='0.0.0.0', port=8001, debug=True)
