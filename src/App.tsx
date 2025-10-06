@@ -30,6 +30,7 @@ import TicketingRevenue from '@/pages/TicketingRevenue'
 import IncidentResponse from '@/pages/IncidentResponse'
 import DeepRLSchedulingPage from '@/pages/DeepRLSchedulingPage'
 import ComprehensiveTrainDetails from '@/pages/ComprehensiveTrainDetails'
+import MaintenanceModulePage from '@/pages/MaintenanceModulePage'
 import NotFound from '@/pages/NotFound'
 import APIDebugger from '@/components/APIDebugger'
 import './App.css'
@@ -79,6 +80,11 @@ function App() {
             <Route path="/maintenance" element={
               <ProtectedRoute>
                 <MaintenanceTracking />
+              </ProtectedRoute>
+            } />
+            <Route path="/maintenance-log" element={
+              <ProtectedRoute>
+                <MaintenanceModulePage />
               </ProtectedRoute>
             } />
             <Route path="/certificates" element={

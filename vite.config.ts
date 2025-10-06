@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       host: "::",
-      port: isProd ? 4173 : 8080,
+      port: isProd ? 4173 : 8084,
       open: !isProd,
       proxy: {
         '/api': {

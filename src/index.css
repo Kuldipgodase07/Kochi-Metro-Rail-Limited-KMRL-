@@ -123,4 +123,56 @@
   .bg-teal-gradient-dark {
     @apply dark:bg-gradient-to-br dark:from-teal-950 dark:via-teal-900 dark:to-emerald-950;
   }
+
+  /* Custom Scrollbar for Data Table */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(229, 231, 235, 0.3);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #14b8a6 0%, #0891b2 100%);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #0e9488 0%, #0e7490 100%);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-corner {
+    background: rgba(229, 231, 235, 0.3);
+  }
+
+  /* Dark mode scrollbar */
+  .dark .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.5);
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #14b8a6 0%, #0891b2 100%);
+    border-color: rgba(0, 0, 0, 0.2);
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #2dd4bf 0%, #22d3ee 100%);
+    border-color: rgba(0, 0, 0, 0.4);
+  }
+
+  /* Firefox scrollbar */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #14b8a6 rgba(229, 231, 235, 0.3);
+  }
+
+  .dark .custom-scrollbar {
+    scrollbar-color: #14b8a6 rgba(31, 41, 55, 0.5);
+  }
 }

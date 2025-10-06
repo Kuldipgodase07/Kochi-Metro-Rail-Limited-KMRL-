@@ -150,8 +150,8 @@ export function ReportsPanel({ trainsets, scheduleData: _, kpiData: __ }: Report
       const filename = `KMRL_${reportType}_report_${new Date().toISOString().split('T')[0]}`
       
       if (format === 'pdf') {
-        // Generate PDF using the simple PDF generator
-        const pdfDoc = generateSimplePDFReport(trainsets, metrics)
+        // Generate PDF using the simple PDF generator with report type for cover page
+        const pdfDoc = await generateSimplePDFReport(trainsets, metrics, reportType)
         pdfDoc.save(`${filename}.pdf`)
       } else if (format === 'excel') {
         // Generate Excel using backend API

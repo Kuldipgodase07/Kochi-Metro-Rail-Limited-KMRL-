@@ -11,6 +11,22 @@
     "reports": "रिपोर्ट",
     "settings": "सेटिंग्स"
   },
+  "modules": {
+    "fleetManagement": "फ्लीट प्रबंधन",
+    "fleetOverview": "फ्लीट अवलोकन",
+    "inductionPlanning": "इंडक्शन योजना",
+    "whatIfSimulation": "व्हाट-इफ सिमुलेशन",
+    "maintenanceTracking": "रखरखाव ट्रैकिंग",
+    "maintenanceLog": "रखरखाव लॉग",
+    "certificateManagement": "प्रमाणपत्र प्रबंधन",
+    "brandingManagement": "ब्रांडिंग प्रबंधन",
+    "cleaningScheduler": "सफाई शेड्यूलर",
+    "comprehensiveReporting": "व्यापक रिपोर्ट",
+    "comprehensiveDetails": "व्यापक ट्रेन विवरण",
+    "passengerInfo": "यात्री जानकारी",
+    "ticketingRevenue": "टिकटिंग और राजस्व",
+    "incidentResponse": "घटना और आपातकाल"
+  },
   "dashboard": {
     "title": "फ्लीट डैशबोर्ड",
     "overview": "फ्लीट अवलोकन",
@@ -41,6 +57,7 @@
     "title": "ट्रेन समय सारणी",
     "manualScheduling": "मैनुअल समय सारणी",
     "aiScheduling": "AI-संचालित समय सारणी",
+    "deepRLTest": "डीप RL शेड्यूलर",
     "scheduleOptimization": "समय सारणी अनुकूलन",
     "recommendedSchedule": "अनुशंसित समय सारणी",
     "currentSchedule": "वर्तमान समय सारणी",

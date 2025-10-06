@@ -11,6 +11,22 @@
     "reports": "റിപ്പോർട്ടുകൾ",
     "settings": "സെറ്റിംഗുകൾ"
   },
+  "modules": {
+    "fleetManagement": "ഫ്ലീറ്റ് മാനേജ്മെന്റ്",
+    "fleetOverview": "ഫ്ലീറ്റ് ഓവർവ്യൂ",
+    "inductionPlanning": "ഇൻഡക്ഷൻ പ്ലാനിംഗ്",
+    "whatIfSimulation": "വാട്ട്-ഇഫ് സിമുലേഷൻ",
+    "maintenanceTracking": "മെയിന്റനൻസ് ട്രാക്കിംഗ്",
+    "maintenanceLog": "മെയിന്റനൻസ് ലോഗ്",
+    "certificateManagement": "സർട്ടിഫിക്കറ്റ് മാനേജ്മെന്റ്",
+    "brandingManagement": "ബ്രാൻഡിംഗ് മാനേജ്മെന്റ്",
+    "cleaningScheduler": "ക്ലീനിംഗ് ഷെഡ്യൂളർ",
+    "comprehensiveReporting": "സമഗ്ര റിപ്പോർട്ടുകൾ",
+    "comprehensiveDetails": "സമഗ്ര ട്രെയിൻ വിശദാംശങ്ങൾ",
+    "passengerInfo": "യാത്രക്കാരുടെ വിവരങ്ങൾ",
+    "ticketingRevenue": "ടിക്കറ്റിംഗ് & റവന്യൂ",
+    "incidentResponse": "സംഭവങ്ങളും അത്യാഹിതങ്ങളും"
+  },
   "dashboard": {
     "title": "ഫ്ലീറ്റ് ഡാഷ്ബോർഡ്",
     "overview": "ഫ്ലീറ്റ് ഓവർവ്യൂ",
@@ -41,6 +57,7 @@
     "title": "ട്രെയിൻ ഷെഡ്യൂളിംഗ്",
     "manualScheduling": "മാനുവൽ ഷെഡ്യൂളിംഗ്",
     "aiScheduling": "AI-പവർഡ് ഷെഡ്യൂളിംഗ്",
+    "deepRLTest": "ഡീപ് ആർഎൽ ഷെഡ്യൂളർ",
     "scheduleOptimization": "ഷെഡ്യൂൾ ഒപ്റ്റിമൈസേഷൻ",
     "recommendedSchedule": "ശുപാർശ ചെയ്ത ഷെഡ്യൂൾ",
     "currentSchedule": "നിലവിലെ ഷെഡ്യൂൾ",

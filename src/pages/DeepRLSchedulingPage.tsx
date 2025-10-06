@@ -40,16 +40,27 @@ const DeepRLSchedulingPage = () => {
 
     setLoading(true);
     try {
+      console.log('Fetching schedule for date:', date);
       const res = await fetch(`/api/rl-schedule?date=${date}`);
-      if (!res.ok) throw new Error("Failed to fetch schedule");
+      console.log('Response status:', res.status);
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `Failed to fetch schedule (${res.status})`);
+      }
+      
       const data = await res.json();
+      console.log('Schedule data received:', data);
+      
       setScheduledTrains(data.scheduled_trains || []);
       setRemainingTrains(data.remaining_trains || []);
+      
       toast({
         title: "Schedule Generated",
         description: `Successfully generated schedule for ${date}`,
       });
     } catch (err: any) {
+      console.error('Schedule generation error:', err);
       toast({
         title: "Error",
         description: err.message || "Failed to fetch schedule",

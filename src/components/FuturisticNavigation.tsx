@@ -19,7 +19,8 @@ import {
   Shield,
   Users,
   CreditCard,
-  AlertTriangle
+  AlertTriangle,
+  ClipboardList
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -87,6 +88,16 @@ const moduleData = [
     description: 'Job-card management with IBM Maximo'
   },
   {
+    id: 'maintenance-log',
+    key: 'modules.maintenanceLog',
+    icon: ClipboardList,
+    iconBg: 'bg-orange-50',
+    iconText: 'text-orange-600',
+    ring: 'ring-orange-200',
+    glow: 'from-orange-200/50 to-orange-300/30',
+    description: 'Service log, performance analysis & train readiness alerts'
+  },
+  {
     id: 'certificates',
     key: 'modules.certificateManagement',
     icon: FileCheck,
@@ -125,16 +136,6 @@ const moduleData = [
     ring: 'ring-teal-200',
     glow: 'from-teal-200/50 to-teal-300/30',
     description: 'Traditional scheduling interface'
-  },
-  {
-    id: 'ai',
-    key: 'scheduling.aiScheduling',
-    icon: Zap,
-    iconBg: 'bg-sky-50',
-    iconText: 'text-sky-600',
-    ring: 'ring-sky-200',
-    glow: 'from-sky-200/50 to-sky-300/30',
-    description: 'AI-powered optimization'
   },
   {
     id: 'ortools',
@@ -240,11 +241,11 @@ export function FuturisticNavigation({}: FuturisticNavigationProps) {
     'induction': '/induction', 
     'simulation': '/simulation',
     'maintenance': '/maintenance',
+    'maintenance-log': '/maintenance-log',
     'certificates': '/certificates',
     'branding': '/branding',
     'cleaning': '/cleaning',
     'manual': '/manual-scheduling',
-    'ai': '/ai-scheduling',
     'ortools': '/ortools-scheduling',
     'sih': '/sih-scheduling',
     'train-scheduling': '/train-scheduling',
@@ -299,11 +300,11 @@ export function FuturisticNavigation({}: FuturisticNavigationProps) {
                 {/* Module card */}
                 <motion.button
                   onClick={() => handleModuleClick(module.id)}
-                  className="relative w-full p-4 rounded-xl border transition-all duration-300 group bg-white border-slate-200 hover:border-blue-200 hover:shadow-md dark:bg-slate-900/60 dark:border-slate-800"
+                  className="relative w-full h-[140px] p-4 rounded-xl border transition-all duration-300 group bg-white border-slate-200 hover:border-blue-200 hover:shadow-md dark:bg-slate-900/60 dark:border-slate-800 flex flex-col items-center justify-center"
                   layout
                 >
                   {/* Icon container */}
-                  <div className={`relative mb-3 mx-auto w-12 h-12 rounded-xl flex items-center justify-center ${module.iconBg} ring-1 ${module.ring}`}>
+                  <div className={`relative mb-3 mx-auto w-12 h-12 rounded-xl flex items-center justify-center ${module.iconBg} ring-1 ${module.ring} flex-shrink-0`}>
                     <Icon className={`w-6 h-6 ${module.iconText}`} />
                     {/* Subtle animated glow behind icon */}
                     <motion.div
@@ -314,7 +315,7 @@ export function FuturisticNavigation({}: FuturisticNavigationProps) {
                   </div>
 
                   {/* Module name */}
-                  <h3 className="text-sm font-semibold mb-1 transition-colors duration-300 text-slate-700 group-hover:text-slate-900 dark:text-slate-200">
+                  <h3 className="text-sm font-semibold mb-1 transition-colors duration-300 text-slate-700 group-hover:text-slate-900 dark:text-slate-200 text-center line-clamp-2">
                     {t(module.key)}
                   </h3>
 

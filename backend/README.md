@@ -107,7 +107,24 @@ npm start          # Start production server
 npm run dev        # Start development server with nodemon
 npm run seed       # Seed database with sample data
 npm run seed:superuser  # Create only super admin user
+npm run seed:maintenance  # Seed past maintenance logs for trainsets
 ```
+
+### Maintenance Seeder Options
+
+Run directly with Node to pass options:
+
+```bash
+# From backend directory
+node scripts/seedMaintenanceLogs.js --limit=12 --perTrain=8 --clear
+
+# Options
+# --limit       Number of trainsets to seed (default: 20)
+# --perTrain    Approx logs per train across the year (default: 10)
+# --clear       If present, clears existing maintenance logs before seeding
+```
+
+The seeder creates realistic weekly/monthly/yearly past logs using the current MaintenanceLog schema and works with the Maintenance Module and the Duration Report (week|month|year).
 
 ## 🔒 Security Features
 

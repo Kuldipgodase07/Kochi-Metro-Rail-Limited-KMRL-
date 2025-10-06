@@ -26,17 +26,26 @@ export class SimplePDFReportGenerator {
   private pageWidth: number;
   private margin: number;
   private currentY: number;
+  private reportType: 'daily' | 'monthly' | 'yearly';
 
-  constructor() {
+  constructor(reportType: 'daily' | 'monthly' | 'yearly' = 'daily') {
     this.doc = new jsPDF('p', 'mm', 'a4');
     this.pageHeight = 297;
     this.pageWidth = 210;
     this.margin = 20;
     this.currentY = this.margin;
+    this.reportType = reportType;
   }
 
-  generateFleetReport(trainsets: Trainset[], metrics: Metrics): jsPDF {
+  async generateFleetReport(trainsets: Trainset[], metrics: Metrics): Promise<jsPDF> {
     try {
+      // Add cover page based on report type
+      await this.addCoverPage();
+      
+      // Add new page for content
+      this.doc.addPage();
+      this.currentY = this.margin;
+      
       // Header
       this.addHeader();
       
@@ -84,7 +93,7 @@ export class SimplePDFReportGenerator {
   }
 
   private addHeader(): void {
-    this.doc.setFillColor(0, 70, 150);
+    this.doc.setFillColor(0, 128, 128);
     this.doc.rect(0, 0, this.pageWidth, 25, 'F');
     
     this.doc.setTextColor(255, 255, 255);
@@ -117,13 +126,13 @@ export class SimplePDFReportGenerator {
     this.currentY += 15;
     this.checkPageBreak(15);
     
-    // Add colored background
-    this.doc.setFillColor(240, 248, 255);
+    // Add colored background with teal theme
+    this.doc.setFillColor(224, 242, 241);
     this.doc.rect(this.margin - 5, this.currentY - 8, this.pageWidth - 2 * this.margin + 10, 12, 'F');
     
     this.doc.setFontSize(14);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.setTextColor(0, 70, 150);
+    this.doc.setTextColor(0, 128, 128);
     this.doc.text(text, this.margin, this.currentY);
     this.doc.setTextColor(0, 0, 0);
     this.currentY += 12;
@@ -167,7 +176,7 @@ export class SimplePDFReportGenerator {
 
     // Table headers
     this.currentY += 5;
-    this.doc.setFillColor(230, 230, 230);
+    this.doc.setFillColor(179, 229, 229);
     this.doc.rect(this.margin, this.currentY - 5, 160, 10, 'F');
     
     this.doc.setFont('helvetica', 'bold');
@@ -233,7 +242,7 @@ export class SimplePDFReportGenerator {
     const sortedTrainsets = [...trainsets].sort((a, b) => a.number.localeCompare(b.number));
     
     // Table headers
-    this.doc.setFillColor(230, 230, 230);
+    this.doc.setFillColor(179, 229, 229);
     this.doc.rect(this.margin, this.currentY - 5, 170, 10, 'F');
     
     this.doc.setFont('helvetica', 'bold');
@@ -349,10 +358,130 @@ export class SimplePDFReportGenerator {
     this.addText('  - Real-time monitoring enables proactive fleet management', 10);
   }
 
+  private async addCoverPage(): Promise<void> {
+    // Determine which cover page image to use based on report type
+    const coverPageMap = {
+      'daily': '/KMRL_DailyReport_Cover_Page[1].png',
+      'monthly': '/Monthly_Report[1].png',
+      'yearly': '/kmrl-annual-report-cover.jpg[1].jpg'
+    };
+    
+    const coverPagePath = coverPageMap[this.reportType];
+    
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        try {
+          // Create a canvas to convert image to base64
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            
+            // Detect image format from file extension
+            const isPng = coverPagePath.toLowerCase().includes('.png');
+            const format = isPng ? 'PNG' : 'JPEG';
+            const mimeType = isPng ? 'image/png' : 'image/jpeg';
+            const base64Image = canvas.toDataURL(mimeType, 1.0);
+            
+            // Add the cover page image to fill the entire page (A4 size)
+            this.doc.addImage(base64Image, format, 0, 0, this.pageWidth, this.pageHeight);
+            console.log(`✅ Cover page added successfully: ${this.reportType} report (${format})`);
+          } else {
+            console.warn('Canvas context not available, using fallback');
+            this.addFallbackCoverPage();
+          }
+        } catch (error) {
+          console.error('Error adding cover page image:', error);
+          this.addFallbackCoverPage();
+        }
+        resolve();
+      };
+      
+      img.onerror = (error) => {
+        console.error('❌ Error loading cover page image:', error);
+        console.log('📁 Attempted to load:', coverPagePath);
+        console.log('💡 Using fallback cover page instead');
+        this.addFallbackCoverPage();
+        resolve();
+      };
+      
+      // Start loading the image
+      img.src = coverPagePath;
+      
+      // Set a timeout in case image doesn't load
+      setTimeout(() => {
+        if (!img.complete) {
+          console.warn('Image loading timeout - image may be missing or empty');
+          console.log('Expected path:', coverPagePath);
+          console.log('Please ensure cover page images are placed in the /public folder with valid content');
+          this.addFallbackCoverPage();
+          resolve();
+        }
+      }, 5000);
+    });
+  }
+
+  private addFallbackCoverPage(): void {
+    // Create a professional gradient background
+    this.doc.setFillColor(0, 70, 150);
+    this.doc.rect(0, 0, this.pageWidth, this.pageHeight, 'F');
+    
+    // Add decorative header bar
+    this.doc.setFillColor(0, 102, 204);
+    this.doc.rect(0, 0, this.pageWidth, 40, 'F');
+    
+    // Add decorative footer bar
+    this.doc.setFillColor(0, 102, 204);
+    this.doc.rect(0, this.pageHeight - 40, this.pageWidth, 40, 'F');
+    
+    // Main title area
+    this.doc.setTextColor(255, 255, 255);
+    this.doc.setFontSize(40);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.text('KMRL', this.pageWidth / 2, 100, { align: 'center' });
+    
+    // Report type with styling
+    const reportTitle = this.reportType.toUpperCase() + ' REPORT';
+    this.doc.setFontSize(28);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.text(reportTitle, this.pageWidth / 2, 130, { align: 'center' });
+    
+    // Decorative line
+    this.doc.setLineWidth(0.5);
+    this.doc.setDrawColor(255, 255, 255);
+    this.doc.line(60, 140, 150, 140);
+    
+    // Organization details
+    this.doc.setFontSize(18);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.text('Kochi Metro Rail Limited', this.pageWidth / 2, 170, { align: 'center' });
+    
+    this.doc.setFontSize(14);
+    this.doc.text('Train Fleet Management System', this.pageWidth / 2, 185, { align: 'center' });
+    
+    // Date and period information
+    this.doc.setFontSize(12);
+    this.doc.setFont('helvetica', 'italic');
+    const currentDate = new Date();
+    this.doc.text(`Report Period: ${this.reportType.charAt(0).toUpperCase() + this.reportType.slice(1)}`, this.pageWidth / 2, 220, { align: 'center' });
+    this.doc.text(`Generated: ${currentDate.toLocaleDateString()} ${currentDate.toLocaleTimeString()}`, this.pageWidth / 2, 230, { align: 'center' });
+    
+    // Footer note
+    this.doc.setFontSize(10);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.text('Confidential Document', this.pageWidth / 2, this.pageHeight - 20, { align: 'center' });
+  }
+
   private addFooter(): void {
     this.currentY = this.pageHeight - 25;
     
-    this.doc.setFillColor(240, 240, 240);
+    this.doc.setFillColor(224, 242, 241);
     this.doc.rect(0, this.pageHeight - 20, this.pageWidth, 20, 'F');
     
     this.doc.setFontSize(9);
@@ -362,7 +491,7 @@ export class SimplePDFReportGenerator {
   }
 }
 
-export const generateSimplePDFReport = (trainsets: Trainset[], metrics: Metrics): jsPDF => {
-  const generator = new SimplePDFReportGenerator();
-  return generator.generateFleetReport(trainsets, metrics);
+export const generateSimplePDFReport = async (trainsets: Trainset[], metrics: Metrics, reportType: 'daily' | 'monthly' | 'yearly' = 'daily'): Promise<jsPDF> => {
+  const generator = new SimplePDFReportGenerator(reportType);
+  return await generator.generateFleetReport(trainsets, metrics);
 };

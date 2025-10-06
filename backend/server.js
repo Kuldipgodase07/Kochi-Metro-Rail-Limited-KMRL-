@@ -15,6 +15,9 @@ import optimizerRoutes from "./routes/optimizer.js";
 import feedbackRoutes from "./routes/feedback.js";
 import schedulingRoutes from "./routes/scheduling.js";
 import rlScheduleRoute from "./routes/rlSchedule.js";
+import maintenanceRoutes from "./routes/maintenance.js";
+import passengersRoutes from "./routes/passengers.js";
+import ticketingRoutes from "./routes/ticketing.js";
 
 // Load environment variables
 dotenv.config();
@@ -84,6 +87,15 @@ app.use("/api/scheduling", schedulingRoutes);
 
 // RL Scheduling API
 app.use("/api", rlScheduleRoute);
+
+// Maintenance Module API
+app.use("/api", maintenanceRoutes);
+
+// Passenger Information System API
+app.use("/api/passengers", passengersRoutes);
+
+// Ticketing & Revenue API
+app.use("/api/ticketing", ticketingRoutes);
 
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
