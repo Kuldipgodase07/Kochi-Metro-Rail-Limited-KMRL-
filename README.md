@@ -6,7 +6,7 @@ Your Smart Transit Companion for Kochi
 > [![LinkedIn Connect](https://img.shields.io/badge/-Connect%20on%20LinkedIn-blue?style=flat-square&logo=Linkedin&logoColor=white)](https://www.linkedin.com/in/kuldip-godase-b2ba40297/)
 > [![Kuldip Godase](https://img.shields.io/badge/-Kuldip%20Godase-blue?style=flat-square)](https://www.linkedin.com/in/kuldip-godase-b2ba40297/)
 
-KMRL is a professional, user-focused project centered around the Kochi Metro Rail ecosystem. It aims to provide commuters and visitors with essential metro information—such as routes, fares, schedules, and station services—through a clean and reliable digital experience. Designed with performance and accessibility in mind, the project supports intuitive navigation and a modern UI for a smooth transit journey.
+KMRL is a professional, user-focused project centered around the Kochi Metro Rail ecosystem. It aims to provide commuters and visitors with essential metro information—such as routes, fares, schedules, station details, and service updates—in one simple interface.
 
 Note: Replace placeholder items such as demo links, APIs, and images with your project’s actual details.
 
@@ -97,16 +97,14 @@ Replace this sample structure with your actual folders and files.
 
 ## Screenshots
 
-| Home | Route Planner | Station Details |
-|------|---------------|-----------------|
-| ![Home](./assets/screenshots/home.png) | ![Route Planner](./assets/screenshots/route-planner.png) | ![Station Details](./assets/screenshots/station-details.png) |
-
-Add your images to `./assets/screenshots/` and update the paths accordingly.
+| Home | Dashabord |
+|------|-----------|
+| <img src="./new_frontend/Screenshot%202025-09-28%20223303.png" alt="Home" width="450" /> | <img src="./new_frontend/ChatGPT%20Image%20May%208%2C%202026%2C%2007_16_18%20PM.png" alt="Dashabord" width="450" /> |
 
 ## Contribution Guidelines
 
 We welcome contributions from everyone.  
-Have an idea or found a bug? Please [open an issue](https://github.com/Kuldipgodase07/Kochi-Metro-Rail-Limited-KMRL-/issues) or [submit a pull request](https://github.com/Kuldipgodase07/Kochi-Metro-Rail-Limited-KMRL-/pulls).
+Have an idea or found a bug? Please [open an issue](https://github.com/Kuldipgodase07/Kochi-Metro-Rail-Limited-KMRL-/issues) or [submit a pull request](https://github.com/Kuldipgodase07/Kochi-Met
 
 How to contribute:
 1. Fork the repository
